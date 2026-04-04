@@ -251,7 +251,13 @@
         <div class="flex-col">
             <div class="label">AIへの指示文 (Prompt):</div>
             <textarea id="promptInput" class="win-inset" rows="4" placeholder="例：C++とヘッダファイルに分かれた複雑な計算機プログラムを作って。"></textarea>
-            <div style="text-align: right;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                <div style="display: flex; gap: 5px; align-items: center;">
+                    <span class="label" style="margin: 0;">Local API URL:</span>
+                    <input type="text" id="apiUrlInput" class="win-inset" value="http://localhost:11434/api/generate" style="width: 220px;">
+                    <span class="label" style="margin: 0;">Model:</span>
+                    <input type="text" id="modelInput" class="win-inset" value="llama3" style="width: 80px;">
+                </div>
                 <button id="generateBtn" class="win-outset" onclick="startGeneration()">生成開始(<u>G</u>)</button>
             </div>
         </div>
@@ -326,6 +332,8 @@
 
     // UI要素の取得
     const promptInput = document.getElementById('promptInput');
+    const apiUrlInput = document.getElementById('apiUrlInput');
+    const modelInput = document.getElementById('modelInput');
     const generateBtn = document.getElementById('generateBtn');
     const progressArea = document.getElementById('progressArea');
     const progressBar = document.getElementById('progressBar');
@@ -414,44 +422,28 @@
         
         startProgress();
 
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const endpoint = apiUrlInput.value.trim();
+        const modelName = modelInput.value.trim();
         
         // AIへのシステム指示
         const systemInstruction = `あなたは優秀なAIプログラマーです。
 ユーザーの指示に従い、長大で品質の高いコードを生成してください。
 コードは意味のある単位で複数ファイルに分割してください。
-また、IDEとして「Visual Studio 2026」を使用することを前提とし、そのプロジェクトの作成や実装手順をステップバイステップで詳しく説明してください。`;
+また、IDEとして「Visual Studio 2026」を使用することを前提とし、そのプロジェクトの作成や実装手順をステップバイステップで詳しく説明してください。
 
-        // 要求するJSONスキーマ
-        const schema = {
-            type: "OBJECT",
-            properties: {
-                files: {
-                    type: "ARRAY",
-                    description: "生成された複数ファイルのリスト",
-                    items: {
-                        type: "OBJECT",
-                        properties: {
-                            filename: { type: "STRING", description: "ファイル名 (例: main.cpp, Header.h)" },
-                            content: { type: "STRING", description: "ソースコードの中身" }
-                        }
-                    }
-                },
-                instructions: { 
-                    type: "STRING", 
-                    description: "Visual Studio 2026でのプロジェクト作成、ファイル追加、ビルド等の実装手順" 
-                }
-            },
-            required: ["files", "instructions"]
-        };
+出力は必ず以下の構造のJSONフォーマットのみで行ってください。マークダウンやその他の説明は一切含めないでください。
+{
+  "files": [
+    { "filename": "main.cpp", "content": "コード内容..." }
+  ],
+  "instructions": "Visual Studio 2026での手順..."
+}`;
 
         const payload = {
-            contents: [{ parts: [{ text: prompt }] }],
-            systemInstruction: { parts: [{ text: systemInstruction }] },
-            generationConfig: {
-                responseMimeType: "application/json",
-                responseSchema: schema
-            }
+            model: modelName,
+            prompt: systemInstruction + "\n\n【ユーザーの指示】\n" + prompt,
+            format: "json",
+            stream: false
         };
 
         try {
@@ -459,10 +451,10 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
-            });
+            }, 1); // ローカルサーバーへの接続なのでリトライは1回
 
-            // JSONテキストの抽出とパース
-            const jsonText = result.candidates[0].content.parts[0].text;
+            // JSONテキストの抽出とパース (Ollamaの場合、応答は result.response に格納される)
+            const jsonText = result.response;
             const parsedData = JSON.parse(jsonText);
 
             generatedFiles = parsedData.files || [];
@@ -483,7 +475,13 @@
         } catch (error) {
             console.error("AI Error:", error);
             stopProgress();
-            showMsg("エラーが発生しました。時間を置いて再度お試しください。\n" + error.message);
+            
+            let errMsg = error.message;
+            if(errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError')) {
+                errMsg = "ローカルAIサーバーに接続できませんでした。\nOllama等のアプリが起動しているか確認してください。\n※ブラウザから接続するには、環境変数 OLLAMA_ORIGINS=\"*\" の設定が必要です。";
+            }
+            
+            showMsg("エラーが発生しました。\n" + errMsg);
             statusText.innerText = "Error occurred.";
             fileList.innerHTML = '<li style="padding: 10px; color: red;">生成失敗</li>';
         } finally {
