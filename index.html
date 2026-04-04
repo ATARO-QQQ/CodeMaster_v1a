@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Architect - Classic Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            background-color: #008080;
+            -webkit-font-smoothing: none;
+            font-family: 'MS PGothic', 'ＭＳ Ｐゴシック', 'Terminal', sans-serif;
+            color: #000;
+            font-size: 14px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.05) 50%);
+            z-index: 9999;
+            background-size: 100% 4px;
+            pointer-events: none; 
+        }
+
+        .win-window {
+            background: #c0c0c0;
+            border-top: 2px solid #dfdfdf;
+            border-left: 2px solid #dfdfdf;
+            border-right: 2px solid #000;
+            border-bottom: 2px solid #000;
+            box-shadow: inset -1px -1px #808080, inset 1px 1px #fff;
+        }
+
+        .win-title-bar {
+            background: linear-gradient(90deg, #000080, #1084d0);
+            color: white;
+            padding: 4px 6px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .win-button {
+            background: #c0c0c0;
+            border-top: 2px solid #fff;
+            border-left: 2px solid #fff;
+            border-right: 2px solid #000;
+            border-bottom: 2px solid #000;
+            box-shadow: inset -1px -1px #808080, inset 1px 1px #dfdfdf;
+            padding: 4px 14px;
+            color: #000;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            font-weight: bold;
+        }
+
+        .win-button:active:not(:disabled) {
+            border-top: 2px solid #000;
+            border-left: 2px solid #000;
+            border-right: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+            box-shadow: inset 1px 1px #808080;
+            padding: 5px 13px 3px 15px;
+        }
+        
+        .win-button:disabled {
+            color: #808080;
+            text-shadow: 1px 1px #fff;
+        }
+
+        .win-sunken {
+            border-top: 2px solid #808080;
+            border-left: 2px solid #808080;
+            border-right: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+            box-shadow: inset 1px 1px #000, inset -1px -1px #dfdfdf;
+            background: #fff;
+        }
+
+        .win-tab-container {
+            display: flex;
+            border-bottom: 2px solid #dfdfdf;
+            padding-left: 4px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .win-tab-container::-webkit-scrollbar { display: none; }
+
+        .win-tab {
+            background: #c0c0c0;
+            border-top: 2px solid #dfdfdf;
+            border-left: 2px solid #dfdfdf;
+            border-right: 2px solid #000;
+            border-bottom: none;
+            box-shadow: inset -1px 0 #808080, inset 1px 1px #fff;
+            padding: 4px 10px;
+            margin-right: 2px;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            margin-top: 4px;
+            white-space: nowrap;
+        }
+
+        .win-tab.active {
+            padding-top: 6px;
+            margin-top: 0;
+            z-index: 3;
+            font-weight: bold;
+        }
+
+        .win-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #c0c0c0;
+        }
+
+        ::-webkit-scrollbar { width: 18px; height: 18px; }
+        ::-webkit-scrollbar-track {
+            background: #dfdfdf;
+            background-image: repeating-linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff), repeating-linear-gradient(45deg, #fff 25%, #dfdfdf 25%, #dfdfdf 75%, #fff 75%, #fff);
+            background-size: 2px 2px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c0c0c0;
+            border-top: 1px solid #fff; border-left: 1px solid #fff; border-right: 1px solid #000; border-bottom: 1px solid #000;
+            box-shadow: inset -1px -1px #808080, inset 1px 1px #dfdfdf;
+        }
+
+        .info-panel { padding: 8px; }
+        .info-panel h3 { font-weight: bold; margin-bottom: 6px; margin-top: 12px; border-bottom: 2px solid #c0c0c0; padding-bottom: 2px; color: #000080; }
+        .info-panel p { margin-bottom: 8px; line-height: 1.4; }
+        .info-panel ul, .info-panel ol { margin-left: 24px; margin-bottom: 8px; }
+        .info-panel li { margin-bottom: 4px; }
+        .info-panel code { background-color: #f0f0f0; padding: 2px 4px; border: 1px solid #dfdfdf; font-family: 'Courier New', monospace; font-size: 13px; }
+
+        pre code.hljs {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.3;
+            -webkit-font-smoothing: none;
+        }
+    </style>
+</head>
+<body class="p-2 md:p-6 h-screen flex flex-col font-sans">
+
+    <div class="win-window flex flex-col h-full w-full mx-auto max-w-7xl relative z-10">
+        
+        <div class="win-title-bar shrink-0 cursor-default">
+            <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ffcc00" viewBox="0 0 256 256"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,160H40V56H216V200ZM176,88a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,88Zm0,32a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,120Zm-32,32a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h56A8,8,0,0,1,144,152Z"></path></svg>
+                <span>AI Code Architect - Visual Studio 2026 Edition</span>
+            </div>
+        </div>
+
+        <div class="flex-1 flex p-2 gap-2 overflow-hidden bg-[#c0c0c0]">
+            
+            <div class="w-1/3 min-w-[300px] flex flex-col gap-2 h-full">
+                
+                <div id="chat-history" class="win-sunken flex-1 overflow-y-auto p-3 flex flex-col gap-3">
+                    <div class="flex gap-2 border-b border-dotted border-[#808080] pb-2">
+                        <span class="font-bold text-[#000080]">System:</span>
+                        <div>
+                            Visual Studio 2026 向けのコード自動生成システムが起動しました。<br>
+                            開発したいアプリケーションの要件を入力してください。実装手順と共にコードを生成します。
+                        </div>
+                    </div>
+                </div>
+
+                <form id="chat-form" class="flex flex-col gap-2 shrink-0">
+                    <textarea 
+                        id="user-input" 
+                        class="win-sunken w-full p-2 resize-none outline-none focus:bg-[#ffffe1] font-sans" 
+                        rows="4"
+                        placeholder="例：C#とWPFを使った計算機アプリの構成を作って"></textarea>
+                    <div class="flex justify-between items-center">
+                        <button type="button" id="clear-btn" class="win-button">ｸﾘｱ</button>
+                        <button type="submit" id="send-btn" class="win-button">生成開始(S)</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="w-2/3 flex flex-col h-full relative">
+                
+                <div class="win-tab-container shrink-0" id="file-tabs">
+                    <div class="win-tab active cursor-default">(待機中)</div>
+                </div>
+
+                <div class="win-window flex-1 flex flex-col relative z-2" style="border-top: none; box-shadow: -1px 0 #dfdfdf, inset -1px -1px #808080, inset 1px 0 #fff;">
+                    
+                    <div class="p-2 border-b border-[#808080] flex justify-between items-center bg-[#c0c0c0]">
+                        <label class="flex items-center gap-2 cursor-pointer font-bold">
+                            <input type="checkbox" id="thought-toggle-chk" checked class="w-4 h-4">
+                            <span>VS2026 実装手順と設計意図を表示</span>
+                        </label>
+                        <div class="flex gap-2">
+                            <button type="button" id="copy-btn" class="win-button" disabled>ｺﾋﾟｰ</button>
+                            <button type="button" id="download-zip-btn" class="win-button" disabled>ZIP保存</button>
+                        </div>
+                    </div>
+
+                    <div id="thought-content" class="win-sunken mx-2 mt-2 p-3 bg-[#ffffe1] overflow-y-auto max-h-[250px] info-panel hidden">
+                    </div>
+
+                    <div class="win-sunken flex-1 m-2 overflow-auto bg-white relative">
+                        <div id="editor-placeholder" class="absolute inset-0 flex items-center justify-center text-[#808080] font-bold text-lg">
+                            指示を入力してください...
+                        </div>
+                        <pre class="m-0 h-full hidden" id="code-container"><code id="code-display" class="hljs h-full !bg-transparent p-3"></code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="shrink-0 border-t border-[#808080] p-1.5 text-xs bg-[#c0c0c0] flex justify-between shadow-[inset_0_1px_#fff] font-bold">
+            <span id="status-text">Ready.</span>
+            <div class="flex gap-4">
+                <span class="border-l border-[#808080] pl-3 shadow-[inset_1px_0_#fff]">Target: VS 2026</span>
+                <span class="border-l border-[#808080] pl-3 shadow-[inset_1px_0_#fff]">Mem: 640KB Free</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 設定 ---
+        const apiKey = ""; 
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+        // --- 状態 ---
+        let generatedData = null; 
+        let activeTabIndex = 0;
+        let isGenerating = false;
+
+        // --- DOM要素 ---
+        const userInput = document.getElementById('user-input');
+        const chatForm = document.getElementById('chat-form');
+        const sendBtn = document.getElementById('send-btn');
+        const chatHistory = document.getElementById('chat-history');
+        const clearBtn = document.getElementById('clear-btn');
+        const statusText = document.getElementById('status-text');
+
+        const fileTabs = document.getElementById('file-tabs');
+        const editorPlaceholder = document.getElementById('editor-placeholder');
+        const codeContainer = document.getElementById('code-container');
+        const codeDisplay = document.getElementById('code-display');
+        const thoughtToggleChk = document.getElementById('thought-toggle-chk');
+        const thoughtContent = document.getElementById('thought-content');
+        const copyBtn = document.getElementById('copy-btn');
+        const downloadZipBtn = document.getElementById('download-zip-btn');
+
+        // --- システムプロンプト (VS2026指定 ＋ 実装手順の要求) ---
+        const systemInstructionText = `あなたは「AI Code Architect」です。
+開発環境はデフォルトで最新の「Visual Studio 2026」を使用するものとします。
+あなたの使命は、ユーザーの要望を深く理解し、妥協のないベストプラクティスに基づいたアーキテクチャ設計、**Visual Studio 2026での具体的な実装・構築手順**、および複数ファイルに分割された完全なコードを提供することです。
+省略形やプレースホルダーは一切使わず、実際に動作するプロダクションレベルのコードを記述してください。
+ファイルパスはフォルダ構造がわかるように記述してください。`;
+
+        // --- ユーティリティ ---
+        async function fetchWithRetry(url, options, maxRetries = 5) {
+            let delay = 1000;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        const errText = await response.text();
+                        throw new Error(`HTTP Error ${response.status}: ${errText}`);
+                    }
+                    return await response.json();
+                } catch (e) {
+                    if (i === maxRetries - 1) throw e;
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag]));
+        }
+
+        // --- UI更新関数 ---
+        function appendMessage(role, text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'flex gap-2 border-b border-dotted border-[#808080] pb-2';
+            
+            const roleName = role === 'user' 
+                ? '<span class="font-bold text-black whitespace-nowrap">User:</span>' 
+                : '<span class="font-bold text-[#000080] whitespace-nowrap">AI:</span>';
+            
+            msgDiv.innerHTML = `${roleName}<div class="break-words w-full">${role === 'user' ? escapeHTML(text).replace(/\n/g, '<br>') : text}</div>`;
+            chatHistory.appendChild(msgDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function appendLoadingMessage() {
+            const id = 'loading-' + Date.now();
+            const msgDiv = document.createElement('div');
+            msgDiv.id = id;
+            msgDiv.className = 'flex gap-2 border-b border-dotted border-[#808080] pb-2 text-[#808080] font-bold';
+            msgDiv.innerHTML = `<span class="whitespace-nowrap">System:</span><div class="blink">VS 2026 開発環境の構築とコーディングを実行中...</div>`;
+            chatHistory.appendChild(msgDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            return id;
+        }
+
+        function renderEditor() {
+            if (!generatedData || !generatedData.files || generatedData.files.length === 0) return;
+
+            editorPlaceholder.classList.add('hidden');
+            codeContainer.classList.remove('hidden');
+            copyBtn.disabled = false;
+            downloadZipBtn.disabled = false;
+
+            // 実装手順と思考プロセスの組み立て
+            let infoHtml = '';
+            
+            if (generatedData.implementation_steps && generatedData.implementation_steps.length > 0) {
+                infoHtml += `<h3>■ Visual Studio 2026 実装手順</h3><ol class="list-decimal">`;
+                generatedData.implementation_steps.forEach(step => {
+                    infoHtml += `<li>${escapeHTML(step)}</li>`;
+                });
+                infoHtml += `</ol>`;
+            }
+
+            if (generatedData.thought_process) {
+                infoHtml += `<h3>■ 設計意図・アーキテクチャ</h3>`;
+                infoHtml += marked.parse(generatedData.thought_process);
+            }
+
+            if (infoHtml) {
+                thoughtContent.innerHTML = infoHtml;
+                if(thoughtToggleChk.checked) thoughtContent.classList.remove('hidden');
+            }
+
+            // タブ
+            fileTabs.innerHTML = '';
+            generatedData.files.forEach((file, index) => {
+                const btn = document.createElement('div');
+                btn.className = `win-tab ${index === activeTabIndex ? 'active' : ''}`;
+                btn.textContent = file.filename;
+                btn.onclick = () => {
+                    activeTabIndex = index;
+                    renderEditor();
+                };
+                fileTabs.appendChild(btn);
+            });
+
+            // コード表示
+            const activeFile = generatedData.files[activeTabIndex];
+            codeDisplay.className = `hljs language-${activeFile.language.toLowerCase()}`;
+            codeDisplay.textContent = activeFile.content;
+            hljs.highlightElement(codeDisplay);
+        }
+
+
+        // --- メイン処理 ---
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (isGenerating) return;
+
+            const prompt = userInput.value.trim();
+            if (!prompt) return;
+
+            userInput.value = '';
+            appendMessage('user', prompt);
+            const loadingId = appendLoadingMessage();
+            
+            isGenerating = true;
+            sendBtn.disabled = true;
+            userInput.disabled = true;
+            statusText.textContent = "Compiling and Generating...";
+
+            const payload = {
+                systemInstruction: { parts: [{ text: systemInstructionText }] },
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            thought_process: { type: "STRING" },
+                            implementation_steps: {
+                                type: "ARRAY",
+                                items: { type: "STRING" },
+                                description: "Visual Studio 2026における、プロジェクトの作成から実行までの具体的なステップ（箇条書き）"
+                            },
+                            files: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        filename: { type: "STRING" },
+                                        language: { type: "STRING" },
+                                        content: { type: "STRING" }
+                                    },
+                                    required: ["filename", "language", "content"]
+                                }
+                            }
+                        },
+                        required: ["thought_process", "implementation_steps", "files"]
+                    }
+                }
+            };
+
+            try {
+                const result = await fetchWithRetry(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (textResponse) {
+                    generatedData = JSON.parse(textResponse);
+                    activeTabIndex = 0;
+                    
+                    document.getElementById(loadingId)?.remove();
+                    
+                    const fileCount = generatedData.files ? generatedData.files.length : 0;
+                    appendMessage('ai', `<b style="color: #008000;">処理が完了しました。</b><br>${fileCount} 個のソースファイルを生成しました。上のパネルから手順を確認してください。`);
+                    statusText.textContent = "Build Succeeded.";
+                    
+                    renderEditor();
+                } else {
+                    throw new Error("Invalid API Response");
+                }
+
+            } catch (error) {
+                document.getElementById(loadingId)?.remove();
+                appendMessage('ai', `<b style="color: #ff0000;">Fatal Error:</b><br>${escapeHTML(error.message)}`);
+                statusText.textContent = "Build Failed.";
+            } finally {
+                isGenerating = false;
+                sendBtn.disabled = false;
+                userInput.disabled = false;
+                userInput.focus();
+            }
+        });
+
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        thoughtToggleChk.addEventListener('change', (e) => {
+            if(e.target.checked && generatedData) {
+                thoughtContent.classList.remove('hidden');
+            } else {
+                thoughtContent.classList.add('hidden');
+            }
+        });
+
+        copyBtn.addEventListener('click', () => {
+            if (!generatedData || !generatedData.files[activeTabIndex]) return;
+            const content = generatedData.files[activeTabIndex].content;
+            
+            navigator.clipboard.writeText(content).then(() => {
+                const orig = copyBtn.textContent;
+                copyBtn.textContent = "OK!";
+                setTimeout(() => { copyBtn.textContent = orig; }, 1000);
+            }).catch(() => {
+                const textArea = document.createElement("textarea");
+                textArea.value = content;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    const orig = copyBtn.textContent;
+                    copyBtn.textContent = "OK!";
+                    setTimeout(() => { copyBtn.textContent = orig; }, 1000);
+                } catch (e) {}
+                document.body.removeChild(textArea);
+            });
+        });
+
+        downloadZipBtn.addEventListener('click', async () => {
+            if (!generatedData || !generatedData.files || generatedData.files.length === 0) return;
+            statusText.textContent = "Archiving files...";
+            
+            const zip = new JSZip();
+            generatedData.files.forEach(file => {
+                zip.file(file.filename, file.content);
+            });
+
+            try {
+                const content = await zip.generateAsync({type:"blob"});
+                const url = URL.createObjectURL(content);
+                const a = document.createElement("a");
+                a.style.display = "none";
+                a.href = url;
+                a.download = "VS2026_Project_Source.zip";
+                document.body.appendChild(a);
+                a.click();
+                
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                statusText.textContent = "Archive complete.";
+            } catch (error) {
+                alert("ZIPの作成に失敗しました。");
+                statusText.textContent = "Archive Error.";
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            while (chatHistory.children.length > 1) {
+                chatHistory.removeChild(chatHistory.lastChild);
+            }
+            generatedData = null;
+            codeContainer.classList.add('hidden');
+            thoughtContent.classList.add('hidden');
+            editorPlaceholder.classList.remove('hidden');
+            copyBtn.disabled = true;
+            downloadZipBtn.disabled = true;
+            fileTabs.innerHTML = '<div class="win-tab active cursor-default">(待機中)</div>';
+            statusText.textContent = "Ready.";
+        });
+
+    </script>
+</body>
+</html>
