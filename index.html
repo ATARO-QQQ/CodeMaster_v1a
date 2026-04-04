@@ -1,542 +1,587 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoCoder 2026 - Local AI Edition</title>
-    <style>
-        /* Windows Me / 9x 風のレトロCSS */
-        body {
-            font-family: 'MS PGothic', 'ＭＳ Ｐゴシック', 'MS UI Gothic', Tahoma, sans-serif;
-            background-color: #008080; /* レトロなデスクトップ背景色 */
-            color: #000;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-size: 12px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Code Generator</title>
+<style>
+    /* Windows Me 風のベーススタイル */
+    :root {
+        --win-bg: #d4d0c8;
+        --win-border-light: #ffffff;
+        --win-border-dark: #404040;
+        --win-border-medium: #808080;
+        --win-title-start: #000080;
+        --win-title-end: #1084d0;
+        --desktop-bg: #008080;
+    }
 
-        /* アウトセット (出っ張り) ボーダー */
-        .win-outset {
-            background-color: #c0c0c0;
-            border-top: 1px solid #ffffff;
-            border-left: 1px solid #ffffff;
-            border-right: 1px solid #000000;
-            border-bottom: 1px solid #000000;
-            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
-        }
+    body {
+        background-color: var(--desktop-bg);
+        /* 古めかしいフォント指定 */
+        font-family: "MS UI Gothic", "MS PGothic", "ＭＳ Ｐゴシック", "Tahoma", sans-serif;
+        font-size: 12px;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        box-sizing: border-box;
+    }
 
-        /* インセット (へこみ) ボーダー */
-        .win-inset {
-            background-color: #ffffff;
-            border-top: 1px solid #808080;
-            border-left: 1px solid #808080;
-            border-right: 1px solid #ffffff;
-            border-bottom: 1px solid #ffffff;
-            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
-        }
+    /* ウィンドウ全体のスタイル */
+    .window {
+        background-color: var(--win-bg);
+        border-top: 1px solid var(--win-border-light);
+        border-left: 1px solid var(--win-border-light);
+        border-right: 1px solid var(--win-border-dark);
+        border-bottom: 1px solid var(--win-border-dark);
+        box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 var(--win-border-medium), 1px 1px 0 #000;
+        width: 95vw;
+        height: 95vh;
+        display: flex;
+        flex-direction: column;
+    }
 
-        /* メインウィンドウ */
-        .window {
-            width: 800px;
-            max-width: 100%;
-            display: flex;
-            flex-direction: column;
-            padding: 2px;
-        }
+    /* タイトルバー */
+    .title-bar {
+        background: linear-gradient(90deg, var(--win-title-start), var(--win-title-end));
+        padding: 3px 5px;
+        color: white;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 2px;
+        letter-spacing: 1px;
+    }
 
-        /* タイトルバー */
-        .title-bar {
-            background: linear-gradient(to right, #000080, #1084d0);
-            color: white;
-            padding: 2px 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-        }
+    .title-bar-buttons button {
+        background-color: var(--win-bg);
+        border-top: 1px solid var(--win-border-light);
+        border-left: 1px solid var(--win-border-light);
+        border-right: 1px solid var(--win-border-dark);
+        border-bottom: 1px solid var(--win-border-dark);
+        font-weight: bold;
+        font-size: 10px;
+        width: 16px;
+        height: 14px;
+        padding: 0;
+        line-height: 10px;
+        cursor: default;
+        outline: none;
+    }
 
-        .title-bar-controls {
-            display: flex;
-            gap: 2px;
-        }
+    .title-bar-buttons button:active {
+        border-top: 1px solid var(--win-border-dark);
+        border-left: 1px solid var(--win-border-dark);
+        border-right: 1px solid var(--win-border-light);
+        border-bottom: 1px solid var(--win-border-light);
+        padding-top: 1px;
+        padding-left: 1px;
+    }
 
-        .title-btn {
-            width: 16px;
-            height: 14px;
-            background-color: #c0c0c0;
-            border-top: 1px solid #ffffff;
-            border-left: 1px solid #ffffff;
-            border-right: 1px solid #000000;
-            border-bottom: 1px solid #000000;
-            font-size: 9px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: black;
-            cursor: default;
-            font-family: sans-serif;
-            font-weight: bold;
-        }
+    /* ウィンドウの中身 */
+    .window-body {
+        padding: 10px;
+        display: flex;
+        flex-direction: row; /* 左右分割に変更 */
+        gap: 10px;
+        flex: 1;
+        overflow: hidden;
+    }
 
-        /* メニューバー (ダミー) */
-        .menu-bar {
-            display: flex;
-            gap: 15px;
-            padding: 2px 8px;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #808080;
-            box-shadow: 0 1px 0 #ffffff;
-        }
-        .menu-item { display: inline-block; }
-        .menu-item:first-letter { text-decoration: underline; }
+    /* 左パネル（入力・制御） */
+    .left-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 250px;
+    }
 
-        /* コンテンツエリア */
-        .content {
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+    /* 右パネル（結果表示） */
+    .right-panel {
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+        min-width: 300px;
+    }
 
-        /* ボタン */
-        button {
-            font-family: inherit;
-            font-size: 12px;
-            padding: 4px 15px;
-            cursor: pointer;
-            outline: none;
-        }
-        button:active:not(:disabled) {
-            border-top: 1px solid #000000;
-            border-left: 1px solid #000000;
-            border-right: 1px solid #ffffff;
-            border-bottom: 1px solid #ffffff;
-            box-shadow: inset 1px 1px #808080, inset -1px -1px #dfdfdf;
-            padding: 5px 14px 3px 16px; /* 押した感を出す */
-        }
-        button:disabled {
-            color: #808080;
-            text-shadow: 1px 1px #ffffff;
-        }
+    /* 凹んだ入力エリアや表示エリア */
+    textarea, .sunken-panel, input[type="password"] {
+        background-color: #ffffff;
+        border-top: 1px solid var(--win-border-dark);
+        border-left: 1px solid var(--win-border-dark);
+        border-right: 1px solid var(--win-border-light);
+        border-bottom: 1px solid var(--win-border-light);
+        box-shadow: inset 1px 1px 0 var(--win-border-medium), inset -1px -1px 0 #dfdfdf;
+        font-family: "MS Gothic", "ＭＳ ゴシック", monospace;
+        font-size: 12px;
+        padding: 4px;
+        box-sizing: border-box;
+    }
 
-        /* テキストエリア */
-        textarea, input[type="text"] {
-            font-family: 'MS PGothic', monospace;
-            font-size: 12px;
-            padding: 4px;
-            resize: none;
-            outline: none;
-            width: 100%;
-            box-sizing: border-box;
-        }
+    textarea {
+        width: 100%;
+        flex: 1; /* 高さを自動拡張 */
+        resize: none; /* 1画面に収めるためリサイズ無効化 */
+        outline: none;
+    }
 
-        /* レイアウト */
-        .flex-row { display: flex; gap: 10px; }
-        .flex-col { display: flex; flex-direction: column; gap: 5px; }
-        .pane-left { width: 250px; display: flex; flex-direction: column; }
-        .pane-right { flex-grow: 1; display: flex; flex-direction: column; }
-        
-        /* ファイルリスト */
-        .file-list {
-            list-style: none;
-            margin: 0;
-            padding: 2px;
-            background: white;
-            height: 250px;
-            overflow-y: auto;
-        }
-        .file-item {
-            padding: 2px 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .file-item:hover { background-color: #dfdfdf; }
-        .file-item.active {
-            background-color: #000080;
-            color: white;
-        }
+    /* APIキー入力欄用のレイアウト */
+    .input-group {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 5px;
+    }
+    .input-group label {
+        font-family: "MS UI Gothic", sans-serif;
+        white-space: nowrap;
+    }
+    .input-group input {
+        flex: 1;
+        font-family: "MS UI Gothic", sans-serif;
+    }
 
-        /* プログレスバー */
-        .progress-container {
-            display: none;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .progress-bar-wrap {
-            height: 18px;
-            flex-grow: 1;
-            padding: 2px;
-            display: flex;
-            gap: 2px;
-        }
-        .progress-block {
-            width: 12px;
-            height: 100%;
-            background-color: #000080;
-            display: none;
-        }
+    /* 汎用ボタン */
+    .btn {
+        background-color: var(--win-bg);
+        border-top: 1px solid var(--win-border-light);
+        border-left: 1px solid var(--win-border-light);
+        border-right: 1px solid var(--win-border-dark);
+        border-bottom: 1px solid var(--win-border-dark);
+        box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 var(--win-border-medium);
+        padding: 4px 15px;
+        font-family: "MS UI Gothic", "MS PGothic", "ＭＳ Ｐゴシック", sans-serif;
+        font-size: 12px;
+        cursor: default;
+        outline: none;
+    }
 
-        /* ステータスバー */
-        .status-bar {
-            margin-top: 5px;
-            padding: 2px 5px;
-            display: flex;
-            justify-content: space-between;
-        }
+    .btn:active {
+        border-top: 1px solid var(--win-border-dark);
+        border-left: 1px solid var(--win-border-dark);
+        border-right: 1px solid var(--win-border-light);
+        border-bottom: 1px solid var(--win-border-light);
+        box-shadow: inset 1px 1px 0 var(--win-border-medium), inset -1px -1px 0 #dfdfdf;
+        padding: 5px 14px 3px 16px; /* 押下時の文字ズレを再現 */
+    }
+    
+    .btn:disabled {
+        color: var(--win-border-medium);
+        text-shadow: 1px 1px 0 #fff;
+    }
 
-        /* アイコン類 */
-        .icon-file {
-            width: 12px; height: 14px;
-            border: 1px solid #808080;
-            background: white;
-            position: relative;
-            display: inline-block;
-        }
-        .icon-file::before {
-            content: ''; position: absolute; top: 0; right: 0;
-            border-width: 0 4px 4px 0;
-            border-style: solid;
-            border-color: #c0c0c0 #c0c0c0 white white;
-            box-shadow: -1px 1px #808080;
-        }
+    /* 結果表示エリア */
+    .result-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+    }
 
-        /* ロード時のカーソル */
-        body.loading, body.loading * {
-            cursor: wait !important;
-        }
+    /* 説明文表示エリア (VS2026手順など) */
+    .explanation-area {
+        background-color: #ffffe1; /* 古いツールチップ風の色 */
+        border: 1px solid #000;
+        padding: 8px;
+        margin-bottom: 15px;
+        font-family: "MS UI Gothic", sans-serif;
+        line-height: 1.4;
+        white-space: pre-wrap;
+    }
 
-        .label { margin-bottom: 2px; }
-        
-        /* メッセージボックス (非表示時) */
-        #msgBox { display: none; }
+    /* 各ファイルのブロック */
+    .file-block {
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px dotted var(--win-border-medium);
+    }
 
-    </style>
+    .file-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: var(--win-bg);
+        padding: 2px;
+        margin-bottom: 5px;
+        border: 1px solid var(--win-border-medium);
+    }
+
+    .file-name {
+        font-weight: bold;
+        color: var(--win-title-start);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    /* 簡易ファイルアイコン */
+    .file-icon {
+        display: inline-block;
+        width: 12px;
+        height: 16px;
+        background-color: #fff;
+        border: 1px solid #000;
+        position: relative;
+    }
+    .file-icon::after {
+        content: "";
+        position: absolute;
+        top: 0; right: 0;
+        border-width: 0 4px 4px 0;
+        border-style: solid;
+        border-color: #ccc #fff #fff #ccc;
+    }
+
+    pre {
+        margin: 0;
+        background-color: #ffffff;
+        padding: 5px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    /* レトロなスクロールバー */
+    ::-webkit-scrollbar {
+        width: 16px;
+        height: 16px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #dfdfdf;
+        border-left: 1px solid #fff;
+        border-top: 1px solid #fff;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--win-bg);
+        border-top: 1px solid var(--win-border-light);
+        border-left: 1px solid var(--win-border-light);
+        border-right: 1px solid var(--win-border-dark);
+        border-bottom: 1px solid var(--win-border-dark);
+    }
+    ::-webkit-scrollbar-button:single-button {
+        background-color: var(--win-bg);
+        border-top: 1px solid var(--win-border-light);
+        border-left: 1px solid var(--win-border-light);
+        border-right: 1px solid var(--win-border-dark);
+        border-bottom: 1px solid var(--win-border-dark);
+        display: block;
+        height: 16px;
+        width: 16px;
+    }
+
+    .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        padding-top: 5px;
+        border-top: 1px groove var(--win-border-light);
+    }
+
+    .btn-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    #statusText {
+        color: var(--win-border-dark);
+    }
+
+    /* レトロなプログレスバー */
+    .progress-bar-container {
+        width: 100%;
+        height: 18px;
+        background-color: var(--win-bg);
+        border-top: 1px solid var(--win-border-dark);
+        border-left: 1px solid var(--win-border-dark);
+        border-right: 1px solid var(--win-border-light);
+        border-bottom: 1px solid var(--win-border-light);
+        box-shadow: inset 1px 1px 0 var(--win-border-medium), inset -1px -1px 0 #dfdfdf;
+        display: none; /* 初期は非表示 */
+        padding: 2px;
+        box-sizing: border-box;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background-color: var(--win-title-start);
+        width: 0%;
+        transition: width 0.2s linear;
+    }
+
+    /* アニメーション用クラス */
+    .is-loading .progress-bar-container {
+        display: block;
+    }
+    .is-loading .progress-bar-fill {
+        /* AIの思考中を表現するフェイクアニメーション */
+        animation: fakeProgress 25s cubic-bezier(0.1, 0.7, 0.1, 1) forwards;
+    }
+
+    @keyframes fakeProgress {
+        0% { width: 0%; }
+        20% { width: 30%; }
+        50% { width: 60%; }
+        80% { width: 85%; }
+        100% { width: 95%; } /* API完了時に100%にする */
+    }
+
+</style>
 </head>
 <body>
 
-<div class="window win-outset">
+<div class="window">
     <div class="title-bar">
-        <div style="display: flex; align-items: center; gap: 5px;">
-            <div style="width: 14px; height: 14px; background: #00ffff; border: 1px solid white;"></div>
-            <span>AutoCoder 2026 - Local AI Edition</span>
-        </div>
-        <div class="title-bar-controls">
-            <div class="title-btn">_</div>
-            <div class="title-btn">□</div>
-            <div class="title-btn">X</div>
+        <span>AI 自動プログラミングシステム - CodeBuilder</span>
+        <div class="title-bar-buttons">
+            <button aria-label="Close">X</button>
         </div>
     </div>
     
-    <div class="menu-bar">
-        <div class="menu-item">File(F)</div>
-        <div class="menu-item">Edit(E)</div>
-        <div class="menu-item">View(V)</div>
-        <div class="menu-item">Tools(T)</div>
-        <div class="menu-item">Help(H)</div>
-    </div>
-
-    <div class="content">
-        <div class="flex-col">
-            <div class="label">AIへの指示文 (Prompt):</div>
-            <textarea id="promptInput" class="win-inset" rows="4" placeholder="例：C++とヘッダファイルに分かれた複雑な計算機プログラムを作って。"></textarea>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
-                <div style="display: flex; gap: 5px; align-items: center;">
-                    <span class="label" style="margin: 0;">Local API URL:</span>
-                    <input type="text" id="apiUrlInput" class="win-inset" value="http://localhost:11434/api/generate" style="width: 220px;">
-                    <span class="label" style="margin: 0;">Model:</span>
-                    <input type="text" id="modelInput" class="win-inset" value="llama3" style="width: 80px;">
-                </div>
-                <button id="generateBtn" class="win-outset" onclick="startGeneration()">生成開始(<u>G</u>)</button>
+    <div class="window-body">
+        <div class="left-panel">
+            <div class="input-group">
+                <label for="apiKeyInput">API Key:</label>
+                <input type="password" id="apiKeyInput" placeholder="ご自身のGemini APIキーを入力 (GitHub Pages等で使う場合)">
             </div>
-        </div>
-
-        <div id="progressArea" class="progress-container">
-            <div style="width: 20px; height: 20px; border: 1px solid #808080; border-radius: 50%; border-top-color: #000; animation: spin 1s linear infinite; display: inline-block;"></div>
-            <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
-            <span>AIがコードを設計・記述しています...</span>
-            <div class="progress-bar-wrap win-inset" id="progressBar">
-                <!-- ブロックをJSで追加 -->
-            </div>
-        </div>
-
-        <div style="border-top: 1px solid #808080; border-bottom: 1px solid #ffffff; margin: 5px 0;"></div>
-
-        <div class="flex-row">
-            <div class="pane-left">
-                <div class="label">出力ファイル一覧:</div>
-                <div class="win-inset">
-                    <ul class="file-list" id="fileList">
-                        <!-- ファイルリストがここに生成される -->
-                        <li style="padding: 10px; color: #808080;">生成待ち...</li>
-                    </ul>
-                </div>
-            </div>
+            <p>作成したいシステムの詳細な要件を入力してください。</p>
+            <textarea id="promptInput" placeholder="例：C#とWPFを使用して、シンプルな電卓アプリを作成してください。ロジックとUIを分離してください。"></textarea>
             
-            <div class="pane-right">
-                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                    <div class="label">ソースコードプレビュー: <span id="currentFileName" style="font-weight: bold;">---</span></div>
-                    <button class="win-outset" style="margin-bottom: 2px;" onclick="copyCode()">ｺﾋﾟｰ(<u>C</u>)</button>
+            <div class="controls" id="controlsArea">
+                <div class="btn-row">
+                    <button class="btn" id="generateBtn" onclick="generateCode()">生成の実行 (G)</button>
+                    <span id="statusText">準備完了</span>
                 </div>
-                <textarea id="codeView" class="win-inset" style="height: 250px; white-space: pre; overflow-x: auto; font-family: 'Courier New', monospace;" readonly></textarea>
+                <div class="progress-bar-container" id="progressBar">
+                    <div class="progress-bar-fill" id="progressFill"></div>
+                </div>
             </div>
         </div>
 
-        <div class="flex-col" style="margin-top: 5px;">
-            <div class="label">Visual Studio 2026 実装手順:</div>
-            <textarea id="instructionsView" class="win-inset" style="height: 100px; background-color: #ffffe1;" readonly></textarea>
-        </div>
-    </div>
-
-    <div class="status-bar win-inset" style="border-top: none; border-left: none; border-right: none; border-bottom: none; box-shadow: none; border-top: 1px solid #808080;">
-        <span id="statusText">Ready - Local Engine Connected</span>
-        <span>Memory: 640KB</span>
-    </div>
-
-    <!-- カスタムメッセージボックス -->
-    <div id="msgBox" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.2); z-index: 100; display: none; justify-content: center; align-items: center;">
-        <div class="window win-outset" style="width: 300px;">
-            <div class="title-bar">
-                <span>情報</span>
-                <div class="title-btn" onclick="closeMsg()">X</div>
-            </div>
-            <div style="padding: 15px; display: flex; gap: 15px; align-items: center;">
-                <div style="font-size: 24px; color: #000080;">i</div>
-                <div id="msgText"></div>
-            </div>
-            <div style="text-align: center; padding-bottom: 10px;">
-                <button class="win-outset" style="width: 80px;" onclick="closeMsg()">OK</button>
+        <div class="right-panel">
+            <div class="sunken-panel result-area" id="resultArea">
+                <div style="color: #808080; text-align: center; margin-top: 50px;">
+                    ここに Visual Studio 2026 の実装手順と、生成されたファイル群が表示されます。
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // システム環境が提供するAPIキー (ユーザー入力不要)
-    const apiKey = "";
-    
-    // 生成されたデータを保持する変数
-    let generatedFiles = [];
-    let currentSelectedIndex = -1;
+    // 実行環境で自動的にAPIキーが埋め込まれます
+    const apiKey = ""; 
 
-    // UI要素の取得
-    const promptInput = document.getElementById('promptInput');
-    const apiUrlInput = document.getElementById('apiUrlInput');
-    const modelInput = document.getElementById('modelInput');
-    const generateBtn = document.getElementById('generateBtn');
-    const progressArea = document.getElementById('progressArea');
-    const progressBar = document.getElementById('progressBar');
-    const fileList = document.getElementById('fileList');
-    const codeView = document.getElementById('codeView');
-    const currentFileName = document.getElementById('currentFileName');
-    const instructionsView = document.getElementById('instructionsView');
-    const statusText = document.getElementById('statusText');
-
-    // プログレスバーのアニメーション用
-    let progressInterval;
-
-    function showMsg(text) {
-        document.getElementById('msgText').innerText = text;
-        document.getElementById('msgBox').style.display = 'flex';
-    }
-
-    function closeMsg() {
-        document.getElementById('msgBox').style.display = 'none';
-    }
-
-    function startProgress() {
-        // プログレスバーのブロックを生成
-        progressBar.innerHTML = '';
-        for(let i=0; i<20; i++) {
-            const block = document.createElement('div');
-            block.className = 'progress-block';
-            progressBar.appendChild(block);
-        }
-        
-        let blocks = document.querySelectorAll('.progress-block');
-        let currentBlock = 0;
-        
-        progressInterval = setInterval(() => {
-            if (currentBlock < blocks.length) {
-                blocks[currentBlock].style.display = 'block';
-                currentBlock++;
-            } else {
-                // 満タンになったらリセットしてループ
-                blocks.forEach(b => b.style.display = 'none');
-                currentBlock = 0;
-            }
-        }, 300);
-    }
-
-    function stopProgress() {
-        clearInterval(progressInterval);
-        document.querySelectorAll('.progress-block').forEach(b => b.style.display = 'block');
-    }
-
-    // 指数バックオフ付きのAPIコール
+    // 指数バックオフによるリトライ機能付きFetch
     async function fetchWithRetry(url, options, maxRetries = 5) {
         let delay = 1000;
         for (let i = 0; i < maxRetries; i++) {
             try {
                 const response = await fetch(url, options);
                 if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
+                    throw new Error(`HTTPエラー: ${response.status}`);
                 }
                 return await response.json();
-            } catch (error) {
-                if (i === maxRetries - 1) throw error;
-                await new Promise(resolve => setTimeout(resolve, delay));
+            } catch (e) {
+                if (i === maxRetries - 1) throw e;
+                await new Promise(res => setTimeout(res, delay));
                 delay *= 2;
             }
         }
     }
 
-    async function startGeneration() {
-        const prompt = promptInput.value.trim();
+    async function generateCode() {
+        const prompt = document.getElementById('promptInput').value.trim();
         if (!prompt) {
-            showMsg("指示文を入力してください。");
+            alert("指示を入力してください。"); 
             return;
         }
 
-        // UI状態の更新
-        generateBtn.disabled = true;
-        document.body.classList.add('loading');
-        progressArea.style.display = 'flex';
-        statusText.innerText = "Generating codes... Please wait.";
-        fileList.innerHTML = '<li style="padding: 10px; color: #808080;">生成中...</li>';
-        codeView.value = '';
-        currentFileName.innerText = '---';
-        instructionsView.value = '';
-        generatedFiles = [];
-        
-        startProgress();
+        // 入力されたAPIキーを取得。空の場合はプレビュー環境の自動キーをフォールバックとして使用
+        let currentApiKey = document.getElementById('apiKeyInput').value.trim();
+        if (!currentApiKey) {
+            currentApiKey = apiKey; 
+        }
 
-        const endpoint = apiUrlInput.value.trim();
-        const modelName = modelInput.value.trim();
-        
-        // AIへのシステム指示
-        const systemInstruction = `あなたは優秀なAIプログラマーです。
-ユーザーの指示に従い、長大で品質の高いコードを生成してください。
-コードは意味のある単位で複数ファイルに分割してください。
-また、IDEとして「Visual Studio 2026」を使用することを前提とし、そのプロジェクトの作成や実装手順をステップバイステップで詳しく説明してください。
+        // APIキーがどちらにも無い場合は警告を出す
+        if (!currentApiKey) {
+            alert("Gemini APIキーを入力してください。\n(GitHub Pages等で実行する場合はご自身のキーが必要です)");
+            return;
+        }
 
-出力は必ず以下の構造のJSONフォーマットのみで行ってください。マークダウンやその他の説明は一切含めないでください。
-{
-  "files": [
-    { "filename": "main.cpp", "content": "コード内容..." }
-  ],
-  "instructions": "Visual Studio 2026での手順..."
-}`;
+        const btn = document.getElementById('generateBtn');
+        const status = document.getElementById('statusText');
+        const resultArea = document.getElementById('resultArea');
+        const controlsArea = document.getElementById('controlsArea');
+        const progressFill = document.getElementById('progressFill');
+
+        btn.disabled = true;
+        status.textContent = "AI 思考中... (サーバーと通信しています)";
+        resultArea.innerHTML = "<div style='padding:10px;'>システムを設計しています。少々お待ちください...</div>";
+        
+        // プログレスバーのアニメーション開始
+        controlsArea.classList.add('is-loading');
+        progressFill.style.animation = 'none';
+        progressFill.offsetHeight; // リフロー強制
+        progressFill.style.animation = null;
+
+        // 強力なシステムプロンプト（VS2026の手順を追加）
+        const systemPrompt = `あなたは優秀なシニアソフトウェアエンジニアです。
+ユーザーの指示に従い、完全に機能するアプリケーションのコードを作成してください。
+大規模な要件や適切な設計が必要な場合は、必ず複数のファイルにコードを分割してください。
+
+【厳格な出力フォーマット】
+以下の2つのステップで出力してください。
+
+1. 【Visual Studio 2026 実装手順】
+最初に、このコードを Visual Studio 2026 で実行・実装するための具体的な手順（プロジェクトの作成方法、テンプレートの選択、ファイルの追加方法、必要なNuGetパッケージや設定など）をプレーンテキストで分かりやすく解説してください。
+
+2. 【コード本体】
+手順の解説の後、各ファイルごとに以下のマークダウン形式を使用して出力してください。
+それ以外の結びの言葉などは出力しないでください。
+
+### [ファイルパスまたはファイル名]
+\`\`\`[言語名]
+[コード本体]
+\`\`\`
+`;
 
         const payload = {
-            model: modelName,
-            prompt: systemInstruction + "\n\n【ユーザーの指示】\n" + prompt,
-            format: "json",
-            stream: false
+            contents: [{ parts: [{ text: prompt }] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] }
         };
 
+        // 取得した currentApiKey をURLにセットする
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${currentApiKey}`;
+
         try {
-            const result = await fetchWithRetry(endpoint, {
+            const data = await fetchWithRetry(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
-            }, 1); // ローカルサーバーへの接続なのでリトライは1回
+            });
 
-            // JSONテキストの抽出とパース (Ollamaの場合、応答は result.response に格納される)
-            const jsonText = result.response;
-            const parsedData = JSON.parse(jsonText);
-
-            generatedFiles = parsedData.files || [];
-            const instructions = parsedData.instructions || "手順が生成されませんでした。";
-
-            stopProgress();
-            renderFileList();
-            instructionsView.value = instructions;
-            
-            if(generatedFiles.length > 0) {
-                selectFile(0);
-                showMsg("コードの生成が完了しました。");
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+                // プログレスバーを100%にする
+                progressFill.style.animation = 'none';
+                progressFill.style.width = '100%';
+                
+                parseAndDisplayResult(text);
+                status.textContent = "完了しました。";
             } else {
-                showMsg("ファイルが生成されませんでした。");
+                resultArea.innerHTML = "生成結果を取得できませんでした。";
+                status.textContent = "エラーが発生しました。";
             }
-            statusText.innerText = "Generation Complete.";
-
-        } catch (error) {
-            console.error("AI Error:", error);
-            stopProgress();
-            
-            let errMsg = error.message;
-            if(errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError')) {
-                errMsg = "ローカルAIサーバーに接続できませんでした。\nOllama等のアプリが起動しているか確認してください。\n※ブラウザから接続するには、環境変数 OLLAMA_ORIGINS=\"*\" の設定が必要です。";
-            }
-            
-            showMsg("エラーが発生しました。\n" + errMsg);
-            statusText.innerText = "Error occurred.";
-            fileList.innerHTML = '<li style="padding: 10px; color: red;">生成失敗</li>';
+        } catch (e) {
+            resultArea.innerHTML = `<div style="color:red;">通信エラーが発生しました:<br>${e.message}</div>`;
+            status.textContent = "エラー";
         } finally {
-            generateBtn.disabled = false;
-            document.body.classList.remove('loading');
-            progressArea.style.display = 'none';
+            btn.disabled = false;
+            // 少し待ってからプログレスバーを隠す
+            setTimeout(() => {
+                controlsArea.classList.remove('is-loading');
+                progressFill.style.width = '0%';
+            }, 1500);
         }
     }
 
-    function renderFileList() {
-        fileList.innerHTML = '';
-        generatedFiles.forEach((file, index) => {
-            const li = document.createElement('li');
-            li.className = 'file-item';
-            li.innerHTML = `<span class="icon-file"></span> ${file.filename}`;
-            li.onclick = () => selectFile(index);
-            fileList.appendChild(li);
-        });
-    }
+    // レスポンスから説明文と複数のファイルをパースして表示する
+    function parseAndDisplayResult(text) {
+        const resultArea = document.getElementById('resultArea');
+        resultArea.innerHTML = "";
 
-    function selectFile(index) {
-        if(index < 0 || index >= generatedFiles.length) return;
-        currentSelectedIndex = index;
+        // "### " をデリミタとして分割する
+        const parts = text.split(/###\s+/);
         
-        // リストのハイライト更新
-        const items = fileList.getElementsByTagName('li');
-        for(let i=0; i<items.length; i++) {
-            items[i].classList.remove('active');
+        // 最初の要素はVS2026の実装手順などの説明文
+        const explanation = parts[0].trim();
+        if (explanation) {
+            const expDiv = document.createElement('div');
+            expDiv.className = 'explanation-area';
+            expDiv.textContent = explanation;
+            resultArea.appendChild(expDiv);
         }
-        items[index].classList.add('active');
 
-        // エディタの更新
-        const file = generatedFiles[index];
-        currentFileName.innerText = file.filename;
-        codeView.value = file.content;
-        
-        // スクロールを上に戻す
-        codeView.scrollTop = 0;
+        let foundFile = false;
+
+        // 2番目以降の要素は各ファイルのブロック
+        for (let i = 1; i < parts.length; i++) {
+            const part = parts[i];
+            
+            // "ファイル名\n```言語\nコード\n```" の形式をパース
+            const match = part.match(/^([^\n]+)[\s\S]*?```\w*\n([\s\S]+?)```/);
+            
+            if (match) {
+                foundFile = true;
+                const fileName = match[1].trim();
+                const code = match[2].trim();
+
+                const block = document.createElement('div');
+                block.className = 'file-block';
+
+                const header = document.createElement('div');
+                header.className = 'file-header';
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'file-name';
+                nameDiv.innerHTML = `<span class="file-icon"></span> ${fileName}`;
+            const pre = document.createElement('pre');
+            pre.textContent = code;
+                block.appendChild(header);
+                block.appendChild(pre);
+                resultArea.appendChild(block);
+            }
+        }
+
+        // 正規表現にマッチしなかった場合のフォールバック（ファイルが1つも抽出できなかった場合）
+        if (!foundFile && parts.length <= 1) {
+            const pre = document.createElement('pre');
+            pre.textContent = text;
+            resultArea.appendChild(pre);
+        }
     }
 
-    function copyCode() {
-        if (!codeView.value) return;
+    // クリップボードにコピー
+    function copyToClipboard(text, btnElement) {
+        // iframe環境などを考慮した堅牢なコピー処理
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.select();
         
-        codeView.select();
         try {
-            // navigator.clipboard は iframe 制約でコケることがあるため execCommand を使用
             document.execCommand('copy');
-            showMsg("クリップボードにコピーしました。");
+            const originalText = btnElement.textContent;
+            btnElement.textContent = 'OK!';
+            setTimeout(() => btnElement.textContent = originalText, 1500);
         } catch (err) {
-            showMsg("コピーに失敗しました。");
+            console.error('コピーに失敗しました', err);
         }
-        // 選択解除
-        window.getSelection().removeAllRanges();
+        document.body.removeChild(textArea);
+    }
+
+    // ファイルとしてダウンロード
+    function downloadFile(filename, content) {
+        // パスが含まれている場合、最後のファイル名だけを抽出する簡易処理
+        const safeFilename = filename.split('/').pop().split('\\').pop() || "download.txt";
+        
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = safeFilename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 </script>
-
 </body>
 </html>
