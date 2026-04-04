@@ -423,24 +423,19 @@
 \`\`\`
 `;
 
-        // 登録不要の無料テキストAI「Pollinations AI」のフォーマットに合わせる
-        const payload = {
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: prompt }
-            ],
-            // 賢いモデルを指定
-            model: "openai"
-        };
-
-        // Pollinations AI のエンドポイント (APIキー不要)
-        const url = `https://text.pollinations.ai/`;
+        // Pollinations AI はブラウザからのPOSTリクエスト(CORS)で弾かれることがあるため、
+        // ブロックされにくい GETリクエスト を使用する形式に変更します。
+        
+        // システムプロンプトとユーザーの指示を結合
+        const fullPrompt = systemPrompt + "\n\n【ユーザーの指示】\n" + prompt;
+        
+        // プロンプトをURLエンコードしてURLの末尾に含める
+        const url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}`;
 
         try {
+            // GETリクエストで送信
             const text = await fetchWithRetry(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                method: 'GET'
             });
 
             if (text) {
