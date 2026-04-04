@@ -383,7 +383,7 @@
             try {
                 const response = await fetch(url, options);
                 if (!response.ok) {
-                    throw new Error(`HTTPエラー: ${response.status}`);
+                    throw new Error(`HTTPエラー: ${response.status} ${response.statusText}`);
                 }
                 return await response.json();
             } catch (e) {
@@ -401,13 +401,12 @@
             return;
         }
 
-        // 入力されたAPIキーを取得。空の場合はプレビュー環境の自動キーをフォールバックとして使用
+        // 入力されたAPIキーを取得。空の場合は自動キーをフォールバックとして使用
         let currentApiKey = document.getElementById('apiKeyInput').value.trim();
         if (!currentApiKey) {
             currentApiKey = apiKey; 
         }
 
-        // APIキーがどちらにも無い場合は警告を出す
         if (!currentApiKey) {
             alert("Gemini APIキーを入力してください。\n(GitHub Pages等で実行する場合はご自身のキーが必要です)");
             return;
@@ -429,7 +428,6 @@
         progressFill.offsetHeight; // リフロー強制
         progressFill.style.animation = null;
 
-        // 強力なシステムプロンプト（VS2026の手順を追加）
         const systemPrompt = `あなたは優秀なシニアソフトウェアエンジニアです。
 ユーザーの指示に従い、完全に機能するアプリケーションのコードを作成してください。
 大規模な要件や適切な設計が必要な場合は、必ず複数のファイルにコードを分割してください。
@@ -455,8 +453,8 @@
             systemInstruction: { parts: [{ text: systemPrompt }] }
         };
 
-        // 取得した currentApiKey をURLにセットする
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${currentApiKey}`;
+        // 修正点: 安定版の gemini-1.5-flash モデルを使用するようURLを変更
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${currentApiKey}`;
 
         try {
             const data = await fetchWithRetry(url, {
@@ -478,7 +476,7 @@
                 status.textContent = "エラーが発生しました。";
             }
         } catch (e) {
-            resultArea.innerHTML = `<div style="color:red;">通信エラーが発生しました:<br>${e.message}</div>`;
+            resultArea.innerHTML = `<div style="color:red;">通信エラーが発生しました:<br>${e.message}<br><br>APIキーが正しいか、またはネットワーク接続を確認してください。</div>`;
             status.textContent = "エラー";
         } finally {
             btn.disabled = false;
@@ -530,8 +528,32 @@
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'file-name';
                 nameDiv.innerHTML = `<span class="file-icon"></span> ${fileName}`;
-            const pre = document.createElement('pre');
-            pre.textContent = code;
+
+                // 修正点: コピー、保存ボタンのDOM生成と追加
+                const btnGroupDiv = document.createElement('div');
+                btnGroupDiv.style.display = 'flex';
+                btnGroupDiv.style.gap = '5px';
+
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'btn';
+                copyBtn.textContent = 'コピー';
+                copyBtn.onclick = () => copyToClipboard(code, copyBtn);
+
+                const dlBtn = document.createElement('button');
+                dlBtn.className = 'btn';
+                dlBtn.textContent = '保存';
+                dlBtn.onclick = () => downloadFile(fileName, code);
+
+                btnGroupDiv.appendChild(copyBtn);
+                btnGroupDiv.appendChild(dlBtn);
+
+                // 修正点: nameDivとボタン群をheaderに追加
+                header.appendChild(nameDiv);
+                header.appendChild(btnGroupDiv);
+
+                const pre = document.createElement('pre');
+                pre.textContent = code;
+                
                 block.appendChild(header);
                 block.appendChild(pre);
                 resultArea.appendChild(block);
