@@ -110,7 +110,7 @@
     }
 
     /* 凹んだ入力エリアや表示エリア */
-    textarea, .sunken-panel {
+    textarea, .sunken-panel, input[type="password"] {
         background-color: #ffffff;
         border-top: 1px solid var(--win-border-dark);
         border-left: 1px solid var(--win-border-dark);
@@ -128,6 +128,22 @@
         flex: 1; /* 高さを自動拡張 */
         resize: none; /* 1画面に収めるためリサイズ無効化 */
         outline: none;
+    }
+
+    /* APIキー入力欄用のレイアウト */
+    .input-group {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 5px;
+    }
+    .input-group label {
+        font-family: "MS UI Gothic", sans-serif;
+        white-space: nowrap;
+    }
+    .input-group input {
+        flex: 1;
+        font-family: "MS UI Gothic", sans-serif;
     }
 
     /* 汎用ボタン */
@@ -328,6 +344,10 @@
     
     <div class="window-body">
         <div class="left-panel">
+            <div class="input-group">
+                <label for="apiKeyInput">API Key:</label>
+                <input type="password" id="apiKeyInput" placeholder="ご自身のGemini APIキーを入力 (GitHub Pages等で使う場合)">
+            </div>
             <p>作成したいシステムの詳細な要件を入力してください。</p>
             <textarea id="promptInput" placeholder="例：C#とWPFを使用して、シンプルな電卓アプリを作成してください。ロジックとUIを分離してください。"></textarea>
             
@@ -381,6 +401,18 @@
             return;
         }
 
+        // 入力されたAPIキーを取得。空の場合はプレビュー環境の自動キーをフォールバックとして使用
+        let currentApiKey = document.getElementById('apiKeyInput').value.trim();
+        if (!currentApiKey) {
+            currentApiKey = apiKey; 
+        }
+
+        // APIキーがどちらにも無い場合は警告を出す
+        if (!currentApiKey) {
+            alert("Gemini APIキーを入力してください。\n(GitHub Pages等で実行する場合はご自身のキーが必要です)");
+            return;
+        }
+
         const btn = document.getElementById('generateBtn');
         const status = document.getElementById('statusText');
         const resultArea = document.getElementById('resultArea');
@@ -423,7 +455,8 @@
             systemInstruction: { parts: [{ text: systemPrompt }] }
         };
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        // 取得した currentApiKey をURLにセットする
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${currentApiKey}`;
 
         try {
             const data = await fetchWithRetry(url, {
