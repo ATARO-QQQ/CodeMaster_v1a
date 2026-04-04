@@ -130,20 +130,9 @@
         outline: none;
     }
 
-    /* APIキー入力欄用のレイアウト */
+    /* APIキー入力欄用のレイアウト (不要になったため削除の準備) */
     .input-group {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        margin-bottom: 5px;
-    }
-    .input-group label {
-        font-family: "MS UI Gothic", sans-serif;
-        white-space: nowrap;
-    }
-    .input-group input {
-        flex: 1;
-        font-family: "MS UI Gothic", sans-serif;
+        display: none; /* 非表示に設定 */
     }
 
     /* 汎用ボタン */
@@ -344,10 +333,6 @@
     
     <div class="window-body">
         <div class="left-panel">
-            <div class="input-group">
-                <label for="apiKeyInput">API Key:</label>
-                <input type="password" id="apiKeyInput" placeholder="ご自身のGemini APIキーを入力 (GitHub Pages等で使う場合)">
-            </div>
             <p>作成したいシステムの詳細な要件を入力してください。</p>
             <textarea id="promptInput" placeholder="例：C#とWPFを使用して、シンプルな電卓アプリを作成してください。ロジックとUIを分離してください。"></textarea>
             
@@ -373,10 +358,9 @@
 </div>
 
 <script>
-    // 実行環境で自動的にAPIキーが埋め込まれます
-    const apiKey = ""; 
-
-    // 指数バックオフによるリトライ機能付きFetch
+    // Pollinations AIを使用するため、APIキーは不要になりました。
+    
+    // 指数バックオフによるリトライ機能付きFetch (テキストで受け取るように変更)
     async function fetchWithRetry(url, options, maxRetries = 5) {
         let delay = 1000;
         for (let i = 0; i < maxRetries; i++) {
@@ -385,7 +369,8 @@
                 if (!response.ok) {
                     throw new Error(`HTTPエラー: ${response.status}`);
                 }
-                return await response.json();
+                // 新しいエンジンはプレーンテキストで結果を返す
+                return await response.text();
             } catch (e) {
                 if (i === maxRetries - 1) throw e;
                 await new Promise(res => setTimeout(res, delay));
@@ -401,18 +386,6 @@
             return;
         }
 
-        // 入力されたAPIキーを取得。空の場合はプレビュー環境の自動キーをフォールバックとして使用
-        let currentApiKey = document.getElementById('apiKeyInput').value.trim();
-        if (!currentApiKey) {
-            currentApiKey = apiKey; 
-        }
-
-        // APIキーがどちらにも無い場合は警告を出す
-        if (!currentApiKey) {
-            alert("Gemini APIキーを入力してください。\n(GitHub Pages等で実行する場合はご自身のキーが必要です)");
-            return;
-        }
-
         const btn = document.getElementById('generateBtn');
         const status = document.getElementById('statusText');
         const resultArea = document.getElementById('resultArea');
@@ -421,7 +394,7 @@
 
         btn.disabled = true;
         status.textContent = "AI 思考中... (サーバーと通信しています)";
-        resultArea.innerHTML = "<div style='padding:10px;'>システムを設計しています。少々お待ちください...</div>";
+        resultArea.innerHTML = "<div style='padding:10px;'>システムを設計しています。少々お待ちください...<br><br>※無料の公開AIエンジンを使用しているため、混雑時は時間がかかる場合があります。</div>";
         
         // プログレスバーのアニメーション開始
         controlsArea.classList.add('is-loading');
@@ -450,22 +423,26 @@
 \`\`\`
 `;
 
+        // 登録不要の無料テキストAI「Pollinations AI」のフォーマットに合わせる
         const payload = {
-            contents: [{ parts: [{ text: prompt }] }],
-            systemInstruction: { parts: [{ text: systemPrompt }] }
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: prompt }
+            ],
+            // 賢いモデルを指定
+            model: "openai"
         };
 
-        // 取得した currentApiKey をURLにセットする
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${currentApiKey}`;
+        // Pollinations AI のエンドポイント (APIキー不要)
+        const url = `https://text.pollinations.ai/`;
 
         try {
-            const data = await fetchWithRetry(url, {
+            const text = await fetchWithRetry(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
             if (text) {
                 // プログレスバーを100%にする
                 progressFill.style.animation = 'none';
@@ -478,7 +455,7 @@
                 status.textContent = "エラーが発生しました。";
             }
         } catch (e) {
-            resultArea.innerHTML = `<div style="color:red;">通信エラーが発生しました:<br>${e.message}</div>`;
+            resultArea.innerHTML = `<div style="color:red;">通信エラーが発生しました:<br>${e.message}<br><br>ネットワーク接続を確認するか、しばらく待ってから再度お試しください。</div>`;
             status.textContent = "エラー";
         } finally {
             btn.disabled = false;
