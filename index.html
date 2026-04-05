@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEX.A Code Edition</title>
     <style>
-        /* Windows NT (Classic) スタイル 極み */
         body {
-            background-color: #008080; /* 古典的なティール背景 */
+            background-color: #008080; 
             font-family: "MS UI Gothic", "ＭＳ Ｐゴシック", "MS PGothic", Tahoma, "MS Sans Serif", sans-serif;
             font-size: 12px;
             color: #000000;
@@ -19,13 +18,11 @@
             padding: 10px;
             box-sizing: border-box;
             
-            /* フォントのアンチエイリアスを無効にしてドット感を出す（ブラウザ依存） */
             -webkit-font-smoothing: none;
             -moz-osx-font-smoothing: grayscale;
             font-smooth: never;
         }
 
-        /* 古典的なスクロールバー (Webkit系のみ) */
         ::-webkit-scrollbar {
             width: 16px;
             height: 16px;
@@ -111,12 +108,12 @@
             border-right: 1px solid #ffffff;
             border-bottom: 1px solid #ffffff;
             box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
-            padding: 1px 0 0 1px; /* 押し込み時のズレ */
+            padding: 1px 0 0 1px;
         }
 
         .menu-bar {
             border-bottom: 1px solid #808080;
-            box-shadow: 0 1px 0 #ffffff; /* メニュー下の凹凸感 */
+            box-shadow: 0 1px 0 #ffffff; 
             padding: 2px;
             display: flex;
             gap: 10px;
@@ -139,7 +136,6 @@
             gap: 8px;
         }
 
-        /* フォーム要素 */
         fieldset {
             border-top: 1px solid #808080;
             border-left: 1px solid #808080;
@@ -202,7 +198,6 @@
             align-items: center;
         }
 
-        /* レイアウト */
         .grid-container {
             display: grid;
             grid-template-columns: 200px 1fr;
@@ -232,7 +227,7 @@
         textarea.code-editor {
             height: 100%;
             min-height: 150px;
-            font-family: "ＭＳ ゴシック", "MS Gothic", monospace; /* コード用フォント（等幅） */
+            font-family: "ＭＳ ゴシック", "MS Gothic", monospace;
             white-space: pre;
             overflow: auto;
             background-color: #ffffff;
@@ -251,7 +246,6 @@
             margin-top: 2px;
         }
 
-        /* ローディングアニメーション（NT風プログレスバー） */
         .loading-container {
             display: none;
             align-items: center;
@@ -287,7 +281,6 @@
             100% { width: 100%; }
         }
 
-        /* モーダルダイアログ */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -300,7 +293,6 @@
         .dialog {
             width: 300px;
             z-index: 1001;
-            /* モーダルにも完璧な3D枠を適用 */
             background-color: #c0c0c0;
             border-top: 1px solid #ffffff;
             border-left: 1px solid #ffffff;
@@ -319,19 +311,17 @@
             NEX.A Code Edition
         </div>
         <div class="title-bar-controls">
-            <button aria-label="Minimize">_</button>
-            <button aria-label="Maximize">□</button>
+            <button aria-label="Minimize" onclick="showMsg('最小化しても何の意味もない…。')>_</button>
+            <button aria-label="Maximize onclick="showMsg('サイズ変えて楽しい？')">□</button>
             <button aria-label="Close" onclick="showMsg('閉じることはできません。')">X</button>
         </div>
     </div>
     
     <div class="menu-bar">
-        <!-- ファイルアップロードをトリガーするように変更 -->
         <span class="menu-item" onclick="document.getElementById('fileInput').click()">ファイル(F)</span>
-        <span class="menu-item" onclick="showMsg('編集メニューは未実装です。')">編集(E)</span>
+        <span class="menu-item" onclick="showMsg('編集メニューは実装する気ゼロです')">編集(E)</span>
         <span class="menu-item" onclick="openHelp()">ヘルプ(H)</span>
     </div>
-    <!-- 隠しファイル入力要素を追加 -->
     <input type="file" id="fileInput" multiple style="display:none;" onchange="handleFiles(this.files)">
 
     <div class="window-body">
@@ -342,7 +332,6 @@
                 <input type="password" id="apiKey" placeholder="AIzaSy...">
                 <button onclick="openHelp()">?</button>
             </div>
-            <!-- 言語選択プルダウンを追加 -->
             <div class="api-key-container" style="margin-top: 5px;">
                 <label for="langSelect">生成言語:</label>
                 <select id="langSelect">
@@ -372,12 +361,10 @@
         <fieldset>
             <legend>出力結果</legend>
             <div class="grid-container">
-                <!-- ファイル一覧 -->
                 <div class="file-list-container">
                     <label>プロジェクトファイル:</label>
                     <select id="fileList" size="10" onchange="displaySelectedFile()"></select>
                 </div>
-                <!-- コードエディタ -->
                 <div class="editor-container">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <label id="currentFileName">ファイルを選択してください</label>
@@ -403,7 +390,6 @@
     </div>
 </div>
 
-<!-- メッセージダイアログ -->
 <div class="modal-overlay" id="msgModal">
     <div class="window dialog">
         <div class="title-bar">
@@ -420,11 +406,10 @@
 </div>
 
 <script>
-    // グローバル変数
     let generatedFiles = [];
-    let conversationHistory = []; // 連続質問用の会話履歴
-    let referenceFilesContent = ""; // 読み込んだファイルのテキスト
-    let loadingInterval = null; // ローディングテキスト切り替え用
+    let conversationHistory = [];
+    let referenceFilesContent = "";
+    let loadingInterval = null;
     const loadingTexts = [
         "要件を解析しています...",
         "プロジェクト構造を設計しています...",
@@ -435,7 +420,6 @@
         "出力の準備をしています..."
     ];
 
-    // UI制御関数
     function showMsg(text) {
         document.getElementById('msgText').innerText = text;
         document.getElementById('msgModal').style.display = 'flex';
@@ -453,7 +437,6 @@
         const code = document.getElementById('codeEditor').value;
         if (!code) return;
         
-        // execCommandを使用したレガシーなコピー手法（iframe内での安全動作のため）
         const textArea = document.createElement("textarea");
         textArea.value = code;
         document.body.appendChild(textArea);
@@ -498,7 +481,6 @@
         }
     }
 
-    // ファイル表示関数
     function displaySelectedFile() {
         const fileList = document.getElementById('fileList');
         const selectedIndex = fileList.selectedIndex;
@@ -510,7 +492,6 @@
         }
     }
 
-    // 参照ファイルの読み込み処理
     async function handleFiles(files) {
         if (!files || files.length === 0) return;
         let loadedCount = 0;
@@ -525,10 +506,9 @@
             }
         }
         showMsg(`${loadedCount}個のファイルを参照用として読み込みました。次の生成時にAIへ送信されます。`);
-        document.getElementById('fileInput').value = ''; // 同じファイルを再度選択可能にするためリセット
+        document.getElementById('fileInput').value = '';
     }
 
-    // API呼び出しメイン関数
     async function startGeneration() {
         const apiKey = document.getElementById('apiKey').value.trim();
         let prompt = document.getElementById('promptInput').value.trim();
@@ -545,23 +525,19 @@
 
         setUIState(true);
         
-        // UIのクリア
         document.getElementById('fileList').innerHTML = '';
         document.getElementById('codeEditor').value = '';
         document.getElementById('currentFileName').innerText = 'ファイルを選択してください';
         document.getElementById('instructionsOutput').value = '';
         generatedFiles = [];
 
-        // 参照ファイルがあればプロンプトに結合
         if (referenceFilesContent) {
             prompt = prompt ? prompt + `\n\n以下のコードを参照してください：\n${referenceFilesContent}` : `以下のコードを参照してください：\n${referenceFilesContent}`;
             referenceFilesContent = ""; // 送信するため一旦クリア
         }
 
-        // 言語指定のシステムプロンプト反映
         const langInstruction = lang !== "指定なし" ? `\n特に指定がない限り、生成言語は「${lang}」を使用してください。` : "";
 
-        // システムプロンプトの構築
         const systemPrompt = `
 あなたはVisual Studio 2026での開発に精通した熟練のプログラマー・アーキテクトAIです。
 ユーザーの指示に基づき、品質が高く、安全で最適なコードを生成してください。
@@ -574,14 +550,12 @@
 3. "instructions"には、Visual Studio 2026を使用してこのプロジェクトを新規作成、コードを配置し、ビルドして実行するための具体的な手順を日本語で詳しく記述してください。
 `;
 
-        // ユーザーの発言を履歴に追加
         conversationHistory.push({ role: "user", parts: [{ text: prompt }] });
 
         const payload = {
-            contents: conversationHistory, // 履歴全体を送信
+            contents: conversationHistory,
             systemInstruction: { parts: [{ text: systemPrompt }] },
             generationConfig: {
-                // JSON出力を強制する
                 responseMimeType: "application/json",
                 responseSchema: {
                     type: "OBJECT",
@@ -619,7 +593,6 @@
 
             const responseText = data.candidates[0].content.parts[0].text;
             
-            // JSONのパース
             let resultObj;
             try {
                 resultObj = JSON.parse(responseText);
@@ -628,13 +601,10 @@
                 throw new Error("AIが予期しない形式のデータを返しました。");
             }
 
-            // 成功した場合のみ、モデルの返答を履歴に追加
             conversationHistory.push({ role: "model", parts: [{ text: responseText }] });
 
-            // 連続して指示を出しやすくするため、入力欄をクリア
             document.getElementById('promptInput').value = '';
 
-            // 結果の反映
             generatedFiles = resultObj.files || [];
             const instructions = resultObj.instructions || "手順が生成されませんでした。";
 
@@ -657,7 +627,6 @@
             }
 
         } catch (error) {
-            // エラー時は追加したユーザープロンプトを履歴から削除し、次回やり直せるようにする
             conversationHistory.pop();
             console.error(error);
             showMsg("エラーが発生しました: " + error.message);
@@ -667,7 +636,6 @@
         }
     }
 
-    // エクスポネンシャルバックオフ付きのFetch関数
     async function fetchWithRetry(url, payload, maxRetries = 5) {
         const delays = [1000, 2000, 4000, 8000, 16000];
         
@@ -691,7 +659,6 @@
                 if (i === maxRetries) {
                     throw error;
                 }
-                // wait for next retry
                 await new Promise(resolve => setTimeout(resolve, delays[i]));
             }
         }
