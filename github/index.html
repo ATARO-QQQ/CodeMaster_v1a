@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEX.A Code Edition</title>
+    <style>
+        body {
+            background-color: #008080; 
+            font-family: "MS UI Gothic", "ＭＳ Ｐゴシック", "MS PGothic", Tahoma, "MS Sans Serif", sans-serif;
+            font-size: 12px;
+            color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+            
+            -webkit-font-smoothing: none;
+            -moz-osx-font-smoothing: grayscale;
+            font-smooth: never;
+        }
+
+        ::-webkit-scrollbar {
+            width: 16px;
+            height: 16px;
+            background: #dfdfdf;
+        }
+        ::-webkit-scrollbar-button {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            display: block;
+        }
+        ::-webkit-scrollbar-button:active {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+        }
+
+        .window {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title-bar {
+            background: #000080;
+            color: white;
+            font-weight: bold;
+            padding: 2px 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            letter-spacing: 1px;
+            margin: 2px;
+        }
+
+        .title-bar-text {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 2px;
+        }
+
+        .title-bar-controls button {
+            width: 16px;
+            height: 14px;
+            font-size: 10px;
+            font-weight: bold;
+            line-height: 10px;
+            padding: 0;
+            margin-left: 2px;
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            color: #000000;
+        }
+
+        .title-bar-controls button:active {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            padding: 1px 0 0 1px;
+        }
+
+        .menu-bar {
+            border-bottom: 1px solid #808080;
+            box-shadow: 0 1px 0 #ffffff; 
+            padding: 2px;
+            display: flex;
+            gap: 10px;
+            margin: 0 2px;
+        }
+
+        .menu-item {
+            padding: 2px 6px;
+            cursor: pointer;
+        }
+        .menu-item:hover {
+            background-color: #000080;
+            color: white;
+        }
+
+        .window-body {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        fieldset {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            padding: 10px;
+            margin: 0;
+        }
+
+        legend {
+            color: #000000;
+            padding: 0 4px;
+        }
+
+        input[type="text"], input[type="password"], textarea, select {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            background-color: #ffffff;
+            padding: 3px;
+            font-family: inherit;
+            box-sizing: border-box;
+            width: 100%;
+            outline: none;
+        }
+
+        button {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            padding: 4px 15px;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+            color: #000000;
+        }
+
+        button:active {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            padding: 5px 14px 3px 16px; /* 押し込み効果 */
+        }
+
+        button:disabled {
+            color: #808080;
+            text-shadow: 1px 1px 0px #ffffff;
+        }
+
+        .api-key-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 10px;
+            height: 300px;
+        }
+        
+        @media (max-width: 600px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .file-list-container, .editor-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            height: 100%;
+        }
+
+        select[size] {
+            height: 100%;
+            min-height: 150px;
+        }
+
+        textarea.code-editor {
+            height: 100%;
+            min-height: 150px;
+            font-family: "ＭＳ ゴシック", "MS Gothic", monospace;
+            white-space: pre;
+            overflow: auto;
+            background-color: #ffffff;
+            resize: none;
+        }
+
+        .status-bar {
+            border-top: 1px solid #808080;
+            box-shadow: inset 0 1px 0 #ffffff;
+            padding: 3px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            background-color: #c0c0c0;
+            margin-top: 2px;
+        }
+
+        .loading-container {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .classic-progress-bar {
+            width: 150px;
+            height: 14px;
+            background-color: #c0c0c0;
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-bottom: 1px solid #ffffff;
+            border-right: 1px solid #ffffff;
+            position: relative;
+            box-sizing: border-box;
+            padding: 1px;
+        }
+
+        .classic-progress-bar::before {
+            content: "";
+            display: block;
+            height: 100%;
+            background-image: linear-gradient(90deg, #000080 8px, transparent 8px);
+            background-size: 10px 100%;
+            animation: fill-bar 3s steps(15, end) infinite;
+        }
+
+        @keyframes fill-bar {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .dialog {
+            width: 300px;
+            z-index: 1001;
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080, 2px 2px 5px rgba(0,0,0,0.5);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="window">
+    <div class="title-bar">
+        <div class="title-bar-text">
+            NEX.A Code Edition
+        </div>
+        <div class="title-bar-controls">
+            <button aria-label="Minimize" onclick="showMsg('最小化しても何の意味もない…。')">_</button>
+            <button aria-label="Maximize" onclick="showMsg('サイズ変えて楽しい？')">□</button>
+            <button aria-label="Close" onclick="showMsg('閉じることはできません。')">X</button>
+        </div>
+    </div>
+    
+    <div class="menu-bar">
+        <span class="menu-item" onclick="document.getElementById('fileInput').click()">ファイル(F)</span>
+        <span class="menu-item" onclick="showMsg('編集メニューは実装する気ゼロです')">編集(E)</span>
+        <span class="menu-item" onclick="openHelp()">ヘルプ(H)</span>
+    </div>
+    <input type="file" id="fileInput" multiple style="display:none;" onchange="handleFiles(this.files)">
+
+    <div class="window-body">
+        <fieldset>
+            <legend>設定</legend>
+            <div class="api-key-container">
+                <label for="apiKey">Gemini API キー:</label>
+                <input type="password" id="apiKey" placeholder="AIzaSy...">
+                <button onclick="openHelp()">?</button>
+            </div>
+            <div class="api-key-container" style="margin-top: 5px;">
+                <label for="langSelect">生成言語:</label>
+                <select id="langSelect">
+                    <option value="指定なし">自動（指定なし）</option>
+                    <option value="HTML">HTML</option>
+                    <option value="CSS">CSS</option>
+                    <option value="JavaScript">JavaScript</option>
+                </select>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>AIへの指示 (要件定義・追加指示)</legend>
+            <textarea id="promptInput" rows="4" placeholder="例: HTMLとJavaScriptでブロック崩しゲームを作ってください。複数回質問することで機能の追加や修正が可能です。"></textarea>
+            <div style="text-align: right; margin-top: 5px;">
+                <button id="generateBtn" onclick="startGeneration()">生成開始(G)</button>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>出力結果</legend>
+            <div class="grid-container">
+                <div class="file-list-container">
+                    <label>プロジェクトファイル:</label>
+                    <select id="fileList" size="10" onchange="displaySelectedFile()"></select>
+                </div>
+                <div class="editor-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label id="currentFileName">ファイルを選択してください</label>
+                        <button onclick="copyCode()" style="padding: 2px 8px;">コピー(C)</button>
+                    </div>
+                    <textarea id="codeEditor" class="code-editor" readonly></textarea>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>GitHub Pages での公開手順</legend>
+            <textarea id="instructionsOutput" rows="5" readonly style="background-color: #f0f0f0;"></textarea>
+        </fieldset>
+    </div>
+
+    <div class="status-bar">
+        <div id="statusText" style="width: 100%;">準備完了</div>
+        <div class="loading-container" id="loadingIndicator">
+            <span id="loadingText" style="flex-grow: 1; text-align: left;">NEX.Aが思考中...</span>
+            <div class="classic-progress-bar"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="msgModal">
+    <div class="window dialog">
+        <div class="title-bar">
+            <div class="title-bar-text">情報</div>
+            <div class="title-bar-controls">
+                <button onclick="closeMsg()">X</button>
+            </div>
+        </div>
+        <div class="window-body" style="text-align: center; padding: 20px;">
+            <p id="msgText"></p>
+            <button onclick="closeMsg()" style="margin-top: 10px; width: 80px;">OK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let generatedFiles = [];
+    let conversationHistory = [];
+    let referenceFilesContent = "";
+    let loadingInterval = null;
+    const loadingTexts = [
+        "要件を解析しています...",
+        "プロジェクト構造を設計しています...",
+        "依存関係を解決しています...",
+        "ソースコードを生成しています...",
+        "構文エラーを確認しています...",
+        "最適化を行っています...",
+        "出力の準備をしています..."
+    ];
+
+    function showMsg(text) {
+        document.getElementById('msgText').innerText = text;
+        document.getElementById('msgModal').style.display = 'flex';
+    }
+
+    function closeMsg() {
+        document.getElementById('msgModal').style.display = 'none';
+    }
+
+    function openHelp() {
+        showMsg("【APIキーの取得方法】\n1. Google AI Studio にアクセス\n2. Get API Key ボタンを押す\n3. 新しいキーを作成してコピー\n4. この画面の「設定」欄に貼り付けます。");
+    }
+
+    function copyCode() {
+        const code = document.getElementById('codeEditor').value;
+        if (!code) return;
+        
+        const textArea = document.createElement("textarea");
+        textArea.value = code;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            document.getElementById('statusText').innerText = "クリップボードにコピーしました。";
+        } catch (err) {
+            showMsg("コピーに失敗しました。");
+        }
+        document.body.removeChild(textArea);
+    }
+
+    function setUIState(isGenerating) {
+        document.getElementById('generateBtn').disabled = isGenerating;
+        document.getElementById('promptInput').disabled = isGenerating;
+        document.getElementById('apiKey').disabled = isGenerating;
+        document.getElementById('langSelect').disabled = isGenerating;
+        
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const statusText = document.getElementById('statusText');
+        const loadingTextEl = document.getElementById('loadingText');
+
+        if (isGenerating) {
+            statusText.style.display = 'none';
+            loadingIndicator.style.display = 'flex';
+            
+            let textIndex = 0;
+            loadingTextEl.innerText = loadingTexts[textIndex];
+            loadingInterval = setInterval(() => {
+                textIndex = (textIndex + 1) % loadingTexts.length;
+                loadingTextEl.innerText = loadingTexts[textIndex];
+            }, 1500);
+        } else {
+            statusText.style.display = 'block';
+            loadingIndicator.style.display = 'none';
+            if (loadingInterval) {
+                clearInterval(loadingInterval);
+                loadingInterval = null;
+            }
+        }
+    }
+
+    function displaySelectedFile() {
+        const fileList = document.getElementById('fileList');
+        const selectedIndex = fileList.selectedIndex;
+        
+        if (selectedIndex >= 0 && selectedIndex < generatedFiles.length) {
+            const file = generatedFiles[selectedIndex];
+            document.getElementById('currentFileName').innerText = file.filename;
+            document.getElementById('codeEditor').value = file.content;
+        }
+    }
+
+    async function handleFiles(files) {
+        if (!files || files.length === 0) return;
+        let loadedCount = 0;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            try {
+                const text = await file.text();
+                referenceFilesContent += `\n【参照ファイル: ${file.name}】\n${text}\n`;
+                loadedCount++;
+            } catch (e) {
+                console.error("ファイル読み込みエラー:", e);
+            }
+        }
+        showMsg(`${loadedCount}個のファイルを参照用として読み込みました。次の生成時にAIへ送信されます。`);
+        document.getElementById('fileInput').value = '';
+    }
+
+    async function startGeneration() {
+        const apiKey = document.getElementById('apiKey').value.trim();
+        let prompt = document.getElementById('promptInput').value.trim();
+        const lang = document.getElementById('langSelect').value;
+
+        if (!apiKey) {
+            showMsg("Gemini APIキーを入力してください。");
+            return;
+        }
+        if (!prompt && !referenceFilesContent) {
+            showMsg("AIへの指示を入力するか、ファイルを参照してください。");
+            return;
+        }
+
+        setUIState(true);
+        
+        document.getElementById('fileList').innerHTML = '';
+        document.getElementById('codeEditor').value = '';
+        document.getElementById('currentFileName').innerText = 'ファイルを選択してください';
+        document.getElementById('instructionsOutput').value = '';
+        generatedFiles = [];
+
+        if (referenceFilesContent) {
+            prompt = prompt ? prompt + `\n\n以下のコードを参照してください：\n${referenceFilesContent}` : `以下のコードを参照してください：\n${referenceFilesContent}`;
+            referenceFilesContent = ""; // 送信するため一旦クリア
+        }
+
+        const langInstruction = lang !== "指定なし" ? `\n特に指定がない限り、生成言語は「${lang}」を使用してください。` : "";
+
+        const systemPrompt = `
+あなたはWebフロントエンド開発とGitHub Pagesでの公開に精通した熟練のプログラマー・アーキテクトAIです。
+ユーザーの指示に基づき、品質が高く、安全で最適なWebアプリケーション（HTML/CSS/JavaScript）のコードを生成してください。
+過去の会話コンテキストを踏まえて、コードの修正や追加機能の実装を行ってください。
+複雑なプログラムは単一のファイルではなく、適切な粒度で複数のファイル（index.html, style.css, script.jsなど）に分割してください。${langInstruction}
+
+以下の要件を必ず守り、JSON形式で出力してください：
+1. 出力は指定されたJSONスキーマに完全に従うこと。Markdownのコードブロック（\`\`\`json など）で囲まないでください。純粋なJSON文字列のみを出力してください。
+2. "files"配列には、プロジェクトを構成する各ファイルの名前とコード内容を含めてください。コード内容は必ず人間が読めるように適切に改行とインデントを保持し、JSON文字列として有効になるよう改行を \\n でエスケープして出力してください。
+3. "instructions"には、生成されたコードをローカルで確認する手順、およびGitHubのリポジトリにプッシュしてGitHub Pagesで公開・デプロイするための具体的な手順を日本語で詳しく記述してください。
+`;
+
+        conversationHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+        const payload = {
+            contents: conversationHistory,
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: {
+                        files: {
+                            type: "ARRAY",
+                            description: "プロジェクトを構成するファイルのリスト",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    filename: { type: "STRING", description: "ファイル名（例: index.html, script.js）" },
+                                    content: { type: "STRING", description: "ファイルの完全なコード内容" }
+                                },
+                                required: ["filename", "content"]
+                            }
+                        },
+                        instructions: {
+                            type: "STRING",
+                            description: "GitHub Pagesでの公開・デプロイ手順"
+                        }
+                    },
+                    required: ["files", "instructions"]
+                }
+            }
+        };
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+        try {
+            const data = await fetchWithRetry(url, payload);
+            
+            if (!data.candidates || data.candidates.length === 0) {
+                throw new Error("AIから有効な応答がありませんでした。");
+            }
+
+            const responseText = data.candidates[0].content.parts[0].text;
+            
+            let resultObj;
+            try {
+                resultObj = JSON.parse(responseText);
+            } catch (e) {
+                console.error("JSON Parse Error:", e, responseText);
+                throw new Error("AIが予期しない形式のデータを返しました。");
+            }
+
+            conversationHistory.push({ role: "model", parts: [{ text: responseText }] });
+
+            document.getElementById('promptInput').value = '';
+
+            generatedFiles = resultObj.files || [];
+            const instructions = resultObj.instructions || "手順が生成されませんでした。";
+
+            const fileListEl = document.getElementById('fileList');
+            generatedFiles.forEach((file, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.text = file.filename;
+                fileListEl.appendChild(option);
+            });
+
+            document.getElementById('instructionsOutput').value = instructions;
+
+            if (generatedFiles.length > 0) {
+                fileListEl.selectedIndex = 0;
+                displaySelectedFile();
+                document.getElementById('statusText').innerText = `${generatedFiles.length}個のファイルが生成されました。（続けて指示の追加が可能です）`;
+            } else {
+                document.getElementById('statusText').innerText = "ファイルは生成されませんでした。";
+            }
+
+        } catch (error) {
+            conversationHistory.pop();
+            console.error(error);
+            showMsg("エラーが発生しました: " + error.message);
+            document.getElementById('statusText').innerText = "エラーが発生しました。";
+        } finally {
+            setUIState(false);
+        }
+    }
+
+    async function fetchWithRetry(url, payload, maxRetries = 5) {
+        const delays = [1000, 2000, 4000, 8000, 16000];
+        
+        for (let i = 0; i <= maxRetries; i++) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
+                }
+
+                return data;
+
+            } catch (error) {
+                if (i === maxRetries) {
+                    throw error;
+                }
+                await new Promise(resolve => setTimeout(resolve, delays[i]));
+            }
+        }
+    }
+
+</script>
+
+</body>
+</html>
