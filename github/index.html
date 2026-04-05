@@ -234,6 +234,18 @@
             resize: none;
         }
 
+        iframe.preview-frame {
+            width: 100%;
+            height: 350px;
+            background-color: #ffffff;
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            box-sizing: border-box;
+        }
+
         .status-bar {
             border-top: 1px solid #808080;
             box-shadow: inset 0 1px 0 #ffffff;
@@ -372,6 +384,15 @@
             <legend>GitHub Pages での公開手順</legend>
             <textarea id="instructionsOutput" rows="5" readonly style="background-color: #f0f0f0;"></textarea>
         </fieldset>
+
+        <fieldset>
+            <legend>プレビュー</legend>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <label>生成されたコードの実行結果</label>
+                <button onclick="updatePreview()" style="padding: 2px 8px;">プレビュー更新(U)</button>
+            </div>
+            <iframe id="previewFrame" class="preview-frame" sandbox="allow-scripts allow-modals"></iframe>
+        </fieldset>
     </div>
 
     <div class="status-bar">
@@ -485,6 +506,56 @@
         }
     }
 
+    function updatePreview() {
+        const iframe = document.getElementById('previewFrame');
+        if (!generatedFiles || generatedFiles.length === 0) {
+            iframe.srcdoc = "<html><body><p style='font-family:sans-serif;'>プレビューするファイルがありません。</p></body></html>";
+            return;
+        }
+
+        let htmlContent = "";
+        let cssContent = "";
+        let jsContent = "";
+
+        // 生成されたファイルを拡張子ごとに分類
+        generatedFiles.forEach(file => {
+            const lowerName = file.filename.toLowerCase();
+            if (lowerName.endsWith('.html')) {
+                if (!htmlContent) htmlContent = file.content; // 最初のHTMLを使用
+            } else if (lowerName.endsWith('.css')) {
+                cssContent += file.content + "\n";
+            } else if (lowerName.endsWith('.js')) {
+                jsContent += file.content + "\n";
+            }
+        });
+
+        if (!htmlContent) {
+            htmlContent = "<!DOCTYPE html><html><head><title>Preview</title></head><body><h3 style='font-family:sans-serif;'>HTMLファイルが見つかりません</h3></body></html>";
+        }
+
+        let previewHtml = htmlContent;
+        
+        // CSSを結合して注入
+        if (cssContent) {
+            if (previewHtml.includes('</head>')) {
+                previewHtml = previewHtml.replace('</head>', `<style>\n${cssContent}\n</style>\n</head>`);
+            } else {
+                previewHtml += `<style>\n${cssContent}\n</style>`;
+            }
+        }
+        
+        // JSを結合して注入
+        if (jsContent) {
+            if (previewHtml.includes('</body>')) {
+                previewHtml = previewHtml.replace('</body>', `<script>\n${jsContent}\n<\/script>\n</body>`);
+            } else {
+                previewHtml += `<script>\n${jsContent}\n<\/script>`;
+            }
+        }
+
+        iframe.srcdoc = previewHtml;
+    }
+
     async function handleFiles(files) {
         if (!files || files.length === 0) return;
         let loadedCount = 0;
@@ -522,6 +593,7 @@
         document.getElementById('codeEditor').value = '';
         document.getElementById('currentFileName').innerText = 'ファイルを選択してください';
         document.getElementById('instructionsOutput').value = '';
+        document.getElementById('previewFrame').srcdoc = '';
         generatedFiles = [];
 
         if (referenceFilesContent) {
@@ -614,9 +686,11 @@
             if (generatedFiles.length > 0) {
                 fileListEl.selectedIndex = 0;
                 displaySelectedFile();
+                updatePreview();
                 document.getElementById('statusText').innerText = `${generatedFiles.length}個のファイルが生成されました。（続けて指示の追加が可能です）`;
             } else {
                 document.getElementById('statusText').innerText = "ファイルは生成されませんでした。";
+                updatePreview();
             }
 
         } catch (error) {
