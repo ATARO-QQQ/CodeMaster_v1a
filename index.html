@@ -1,609 +1,704 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Code Generator</title>
-<style>
-    /* Windows Me 風のベーススタイル */
-    :root {
-        --win-bg: #d4d0c8;
-        --win-border-light: #ffffff;
-        --win-border-dark: #404040;
-        --win-border-medium: #808080;
-        --win-title-start: #000080;
-        --win-title-end: #1084d0;
-        --desktop-bg: #008080;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEX.A Code Edition</title>
+    <style>
+        /* Windows NT (Classic) スタイル 極み */
+        body {
+            background-color: #008080; /* 古典的なティール背景 */
+            font-family: "MS UI Gothic", "ＭＳ Ｐゴシック", "MS PGothic", Tahoma, "MS Sans Serif", sans-serif;
+            font-size: 12px;
+            color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+            
+            /* フォントのアンチエイリアスを無効にしてドット感を出す（ブラウザ依存） */
+            -webkit-font-smoothing: none;
+            -moz-osx-font-smoothing: grayscale;
+            font-smooth: never;
+        }
 
-    body {
-        background-color: var(--desktop-bg);
-        /* 古めかしいフォント指定 */
-        font-family: "MS UI Gothic", "MS PGothic", "ＭＳ Ｐゴシック", "Tahoma", sans-serif;
-        font-size: 12px;
-        margin: 0;
-        padding: 20px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        box-sizing: border-box;
-    }
+        /* 古典的なスクロールバー (Webkit系のみ) */
+        ::-webkit-scrollbar {
+            width: 16px;
+            height: 16px;
+            background: #dfdfdf;
+        }
+        ::-webkit-scrollbar-button {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            display: block;
+        }
+        ::-webkit-scrollbar-button:active {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+        }
 
-    /* ウィンドウ全体のスタイル */
-    .window {
-        background-color: var(--win-bg);
-        border-top: 1px solid var(--win-border-light);
-        border-left: 1px solid var(--win-border-light);
-        border-right: 1px solid var(--win-border-dark);
-        border-bottom: 1px solid var(--win-border-dark);
-        box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 var(--win-border-medium), 1px 1px 0 #000;
-        width: 95vw;
-        height: 95vh;
-        display: flex;
-        flex-direction: column;
-    }
+        .window {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+        }
 
-    /* タイトルバー */
-    .title-bar {
-        background: linear-gradient(90deg, var(--win-title-start), var(--win-title-end));
-        padding: 3px 5px;
-        color: white;
-        font-weight: bold;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin: 2px;
-        letter-spacing: 1px;
-    }
+        .title-bar {
+            background: #000080;
+            color: white;
+            font-weight: bold;
+            padding: 2px 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            letter-spacing: 1px;
+            margin: 2px;
+        }
 
-    .title-bar-buttons button {
-        background-color: var(--win-bg);
-        border-top: 1px solid var(--win-border-light);
-        border-left: 1px solid var(--win-border-light);
-        border-right: 1px solid var(--win-border-dark);
-        border-bottom: 1px solid var(--win-border-dark);
-        font-weight: bold;
-        font-size: 10px;
-        width: 16px;
-        height: 14px;
-        padding: 0;
-        line-height: 10px;
-        cursor: default;
-        outline: none;
-    }
+        .title-bar-text {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 2px;
+        }
 
-    .title-bar-buttons button:active {
-        border-top: 1px solid var(--win-border-dark);
-        border-left: 1px solid var(--win-border-dark);
-        border-right: 1px solid var(--win-border-light);
-        border-bottom: 1px solid var(--win-border-light);
-        padding-top: 1px;
-        padding-left: 1px;
-    }
+        .title-bar-controls button {
+            width: 16px;
+            height: 14px;
+            font-size: 10px;
+            font-weight: bold;
+            line-height: 10px;
+            padding: 0;
+            margin-left: 2px;
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            color: #000000;
+        }
 
-    /* ウィンドウの中身 */
-    .window-body {
-        padding: 10px;
-        display: flex;
-        flex-direction: row; /* 左右分割に変更 */
-        gap: 10px;
-        flex: 1;
-        overflow: hidden;
-    }
+        .title-bar-controls button:active {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            padding: 1px 0 0 1px; /* 押し込み時のズレ */
+        }
 
-    /* 左パネル（入力・制御） */
-    .left-panel {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        min-width: 250px;
-    }
+        .menu-bar {
+            border-bottom: 1px solid #808080;
+            box-shadow: 0 1px 0 #ffffff; /* メニュー下の凹凸感 */
+            padding: 2px;
+            display: flex;
+            gap: 10px;
+            margin: 0 2px;
+        }
 
-    /* 右パネル（結果表示） */
-    .right-panel {
-        flex: 2;
-        display: flex;
-        flex-direction: column;
-        min-width: 300px;
-    }
+        .menu-item {
+            padding: 2px 6px;
+            cursor: pointer;
+        }
+        .menu-item:hover {
+            background-color: #000080;
+            color: white;
+        }
 
-    /* 凹んだ入力エリアや表示エリア */
-    textarea, .sunken-panel, input[type="password"] {
-        background-color: #ffffff;
-        border-top: 1px solid var(--win-border-dark);
-        border-left: 1px solid var(--win-border-dark);
-        border-right: 1px solid var(--win-border-light);
-        border-bottom: 1px solid var(--win-border-light);
-        box-shadow: inset 1px 1px 0 var(--win-border-medium), inset -1px -1px 0 #dfdfdf;
-        font-family: "MS Gothic", "ＭＳ ゴシック", monospace;
-        font-size: 12px;
-        padding: 4px;
-        box-sizing: border-box;
-    }
+        .window-body {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
-    textarea {
-        width: 100%;
-        flex: 1; /* 高さを自動拡張 */
-        resize: none; /* 1画面に収めるためリサイズ無効化 */
-        outline: none;
-    }
+        /* フォーム要素 */
+        fieldset {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            padding: 10px;
+            margin: 0;
+        }
 
-    /* APIキー入力欄用のレイアウト */
-    .input-group {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        margin-bottom: 5px;
-    }
-    .input-group label {
-        font-family: "MS UI Gothic", sans-serif;
-        white-space: nowrap;
-    }
-    .input-group input {
-        flex: 1;
-        font-family: "MS UI Gothic", sans-serif;
-    }
+        legend {
+            color: #000000;
+            padding: 0 4px;
+        }
 
-    /* 汎用ボタン */
-    .btn {
-        background-color: var(--win-bg);
-        border-top: 1px solid var(--win-border-light);
-        border-left: 1px solid var(--win-border-light);
-        border-right: 1px solid var(--win-border-dark);
-        border-bottom: 1px solid var(--win-border-dark);
-        box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 var(--win-border-medium);
-        padding: 4px 15px;
-        font-family: "MS UI Gothic", "MS PGothic", "ＭＳ Ｐゴシック", sans-serif;
-        font-size: 12px;
-        cursor: default;
-        outline: none;
-    }
+        input[type="text"], input[type="password"], textarea, select {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            background-color: #ffffff;
+            padding: 3px;
+            font-family: inherit;
+            box-sizing: border-box;
+            width: 100%;
+            outline: none;
+        }
 
-    .btn:active {
-        border-top: 1px solid var(--win-border-dark);
-        border-left: 1px solid var(--win-border-dark);
-        border-right: 1px solid var(--win-border-light);
-        border-bottom: 1px solid var(--win-border-light);
-        box-shadow: inset 1px 1px 0 var(--win-border-medium), inset -1px -1px 0 #dfdfdf;
-        padding: 5px 14px 3px 16px; /* 押下時の文字ズレを再現 */
-    }
-    
-    .btn:disabled {
-        color: var(--win-border-medium);
-        text-shadow: 1px 1px 0 #fff;
-    }
+        button {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            padding: 4px 15px;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+            color: #000000;
+        }
 
-    /* 結果表示エリア */
-    .result-area {
-        flex: 1;
-        overflow-y: auto;
-        padding: 10px;
-    }
+        button:active {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            padding: 5px 14px 3px 16px; /* 押し込み効果 */
+        }
 
-    /* 説明文表示エリア (VS2026手順など) */
-    .explanation-area {
-        background-color: #ffffe1; /* 古いツールチップ風の色 */
-        border: 1px solid #000;
-        padding: 8px;
-        margin-bottom: 15px;
-        font-family: "MS UI Gothic", sans-serif;
-        line-height: 1.4;
-        white-space: pre-wrap;
-    }
+        button:disabled {
+            color: #808080;
+            text-shadow: 1px 1px 0px #ffffff;
+        }
 
-    /* 各ファイルのブロック */
-    .file-block {
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 1px dotted var(--win-border-medium);
-    }
+        .api-key-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
 
-    .file-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background-color: var(--win-bg);
-        padding: 2px;
-        margin-bottom: 5px;
-        border: 1px solid var(--win-border-medium);
-    }
+        /* レイアウト */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 10px;
+            height: 300px;
+        }
+        
+        @media (max-width: 600px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
 
-    .file-name {
-        font-weight: bold;
-        color: var(--win-title-start);
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-    
-    /* 簡易ファイルアイコン */
-    .file-icon {
-        display: inline-block;
-        width: 12px;
-        height: 16px;
-        background-color: #fff;
-        border: 1px solid #000;
-        position: relative;
-    }
-    .file-icon::after {
-        content: "";
-        position: absolute;
-        top: 0; right: 0;
-        border-width: 0 4px 4px 0;
-        border-style: solid;
-        border-color: #ccc #fff #fff #ccc;
-    }
+        .file-list-container, .editor-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            height: 100%;
+        }
 
-    pre {
-        margin: 0;
-        background-color: #ffffff;
-        padding: 5px;
-        overflow-x: auto;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-    }
+        select[size] {
+            height: 100%;
+            min-height: 150px;
+        }
 
-    /* レトロなスクロールバー */
-    ::-webkit-scrollbar {
-        width: 16px;
-        height: 16px;
-    }
-    ::-webkit-scrollbar-track {
-        background: #dfdfdf;
-        border-left: 1px solid #fff;
-        border-top: 1px solid #fff;
-    }
-    ::-webkit-scrollbar-thumb {
-        background: var(--win-bg);
-        border-top: 1px solid var(--win-border-light);
-        border-left: 1px solid var(--win-border-light);
-        border-right: 1px solid var(--win-border-dark);
-        border-bottom: 1px solid var(--win-border-dark);
-    }
-    ::-webkit-scrollbar-button:single-button {
-        background-color: var(--win-bg);
-        border-top: 1px solid var(--win-border-light);
-        border-left: 1px solid var(--win-border-light);
-        border-right: 1px solid var(--win-border-dark);
-        border-bottom: 1px solid var(--win-border-dark);
-        display: block;
-        height: 16px;
-        width: 16px;
-    }
+        textarea.code-editor {
+            height: 100%;
+            min-height: 150px;
+            font-family: "ＭＳ ゴシック", "MS Gothic", monospace; /* コード用フォント（等幅） */
+            white-space: pre;
+            overflow: auto;
+            background-color: #ffffff;
+            resize: none;
+        }
 
-    .controls {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        padding-top: 5px;
-        border-top: 1px groove var(--win-border-light);
-    }
+        .status-bar {
+            border-top: 1px solid #808080;
+            box-shadow: inset 0 1px 0 #ffffff;
+            padding: 3px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            background-color: #c0c0c0;
+            margin-top: 2px;
+        }
 
-    .btn-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
+        /* ローディングアニメーション（NT風プログレスバー） */
+        .loading-container {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .classic-progress-bar {
+            width: 150px;
+            height: 14px;
+            background-color: #c0c0c0;
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-bottom: 1px solid #ffffff;
+            border-right: 1px solid #ffffff;
+            position: relative;
+            box-sizing: border-box;
+            padding: 1px;
+        }
 
-    #statusText {
-        color: var(--win-border-dark);
-    }
+        .classic-progress-bar::before {
+            content: "";
+            display: block;
+            height: 100%;
+            background-image: linear-gradient(90deg, #000080 8px, transparent 8px);
+            background-size: 10px 100%;
+            animation: fill-bar 3s steps(15, end) infinite;
+        }
 
-    /* レトロなプログレスバー */
-    .progress-bar-container {
-        width: 100%;
-        height: 18px;
-        background-color: var(--win-bg);
-        border-top: 1px solid var(--win-border-dark);
-        border-left: 1px solid var(--win-border-dark);
-        border-right: 1px solid var(--win-border-light);
-        border-bottom: 1px solid var(--win-border-light);
-        box-shadow: inset 1px 1px 0 var(--win-border-medium), inset -1px -1px 0 #dfdfdf;
-        display: none; /* 初期は非表示 */
-        padding: 2px;
-        box-sizing: border-box;
-    }
+        @keyframes fill-bar {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
 
-    .progress-bar-fill {
-        height: 100%;
-        background-color: var(--win-title-start);
-        width: 0%;
-        transition: width 0.2s linear;
-    }
+        /* モーダルダイアログ */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .dialog {
+            width: 300px;
+            z-index: 1001;
+            /* モーダルにも完璧な3D枠を適用 */
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080, 2px 2px 5px rgba(0,0,0,0.5);
+        }
 
-    /* アニメーション用クラス */
-    .is-loading .progress-bar-container {
-        display: block;
-    }
-    .is-loading .progress-bar-fill {
-        /* AIの思考中を表現するフェイクアニメーション */
-        animation: fakeProgress 25s cubic-bezier(0.1, 0.7, 0.1, 1) forwards;
-    }
-
-    @keyframes fakeProgress {
-        0% { width: 0%; }
-        20% { width: 30%; }
-        50% { width: 60%; }
-        80% { width: 85%; }
-        100% { width: 95%; } /* API完了時に100%にする */
-    }
-
-</style>
+    </style>
 </head>
 <body>
 
 <div class="window">
     <div class="title-bar">
-        <span>AI 自動プログラミングシステム - CodeBuilder</span>
-        <div class="title-bar-buttons">
-            <button aria-label="Close">X</button>
+        <div class="title-bar-text">
+            <span>&#128187;</span> <!-- PC Icon placeholder -->
+            NEX.A Code Edition
+        </div>
+        <div class="title-bar-controls">
+            <button aria-label="Minimize">_</button>
+            <button aria-label="Maximize">□</button>
+            <button aria-label="Close" onclick="showMsg('閉じることはできません。')">X</button>
         </div>
     </div>
     
+    <div class="menu-bar">
+        <!-- ファイルアップロードをトリガーするように変更 -->
+        <span class="menu-item" onclick="document.getElementById('fileInput').click()">ファイル(F)</span>
+        <span class="menu-item" onclick="showMsg('編集メニューは未実装です。')">編集(E)</span>
+        <span class="menu-item" onclick="openHelp()">ヘルプ(H)</span>
+    </div>
+    <!-- 隠しファイル入力要素を追加 -->
+    <input type="file" id="fileInput" multiple style="display:none;" onchange="handleFiles(this.files)">
+
     <div class="window-body">
-        <div class="left-panel">
-            <div class="input-group">
-                <label for="apiKeyInput">API Key:</label>
-                <input type="password" id="apiKeyInput" placeholder="ご自身のGemini APIキーを入力 (GitHub Pages等で使う場合)">
+        <fieldset>
+            <legend>設定</legend>
+            <div class="api-key-container">
+                <label for="apiKey">Gemini API キー:</label>
+                <input type="password" id="apiKey" placeholder="AIzaSy...">
+                <button onclick="openHelp()">?</button>
             </div>
-            <p>作成したいシステムの詳細な要件を入力してください。</p>
-            <textarea id="promptInput" placeholder="例：C#とWPFを使用して、シンプルな電卓アプリを作成してください。ロジックとUIを分離してください。"></textarea>
-            
-            <div class="controls" id="controlsArea">
-                <div class="btn-row">
-                    <button class="btn" id="generateBtn" onclick="generateCode()">生成の実行 (G)</button>
-                    <span id="statusText">準備完了</span>
+            <!-- 言語選択プルダウンを追加 -->
+            <div class="api-key-container" style="margin-top: 5px;">
+                <label for="langSelect">生成言語:</label>
+                <select id="langSelect">
+                    <option value="指定なし">自動（指定なし）</option>
+                    <option value="C">C</option>
+                    <option value="C++">C++</option>
+                    <option value="C#">C#</option>
+                    <option value="F#">F#</option>
+                    <option value="VB.NET">VB.NET</option>
+                    <option value="JavaScript">JavaScript</option>
+                    <option value="CS">CS</option>
+                    <option value="HTML">HTML</option>
+                    <option value="Bun">Bun</option>
+                    <option value="React">React</option>
+                </select>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>AIへの指示 (要件定義・追加指示)</legend>
+            <textarea id="promptInput" rows="4" placeholder="例: C++でDxLibを使ったブロック崩しゲームを作ってください。複数回質問することで機能の追加や修正が可能です。"></textarea>
+            <div style="text-align: right; margin-top: 5px;">
+                <button id="generateBtn" onclick="startGeneration()">生成開始(G)</button>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>出力結果</legend>
+            <div class="grid-container">
+                <!-- ファイル一覧 -->
+                <div class="file-list-container">
+                    <label>プロジェクトファイル:</label>
+                    <select id="fileList" size="10" onchange="displaySelectedFile()"></select>
                 </div>
-                <div class="progress-bar-container" id="progressBar">
-                    <div class="progress-bar-fill" id="progressFill"></div>
+                <!-- コードエディタ -->
+                <div class="editor-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label id="currentFileName">ファイルを選択してください</label>
+                        <button onclick="copyCode()" style="padding: 2px 8px;">コピー(C)</button>
+                    </div>
+                    <textarea id="codeEditor" class="code-editor" readonly></textarea>
                 </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>VS 2026 での実装・ビルド手順</legend>
+            <textarea id="instructionsOutput" rows="5" readonly style="background-color: #f0f0f0;"></textarea>
+        </fieldset>
+    </div>
+
+    <div class="status-bar">
+        <div id="statusText" style="width: 100%;">準備完了</div>
+        <div class="loading-container" id="loadingIndicator">
+            <span id="loadingText" style="flex-grow: 1; text-align: left;">NEX.Aが思考中...</span>
+            <div class="classic-progress-bar"></div>
+        </div>
+    </div>
+</div>
+
+<!-- メッセージダイアログ -->
+<div class="modal-overlay" id="msgModal">
+    <div class="window dialog">
+        <div class="title-bar">
+            <div class="title-bar-text">情報</div>
+            <div class="title-bar-controls">
+                <button onclick="closeMsg()">X</button>
             </div>
         </div>
-
-        <div class="right-panel">
-            <div class="sunken-panel result-area" id="resultArea">
-                <div style="color: #808080; text-align: center; margin-top: 50px;">
-                    ここに Visual Studio 2026 の実装手順と、生成されたファイル群が表示されます。
-                </div>
-            </div>
+        <div class="window-body" style="text-align: center; padding: 20px;">
+            <p id="msgText"></p>
+            <button onclick="closeMsg()" style="margin-top: 10px; width: 80px;">OK</button>
         </div>
     </div>
 </div>
 
 <script>
-    // 実行環境で自動的にAPIキーが埋め込まれます
-    const apiKey = ""; 
+    // グローバル変数
+    let generatedFiles = [];
+    let conversationHistory = []; // 連続質問用の会話履歴
+    let referenceFilesContent = ""; // 読み込んだファイルのテキスト
+    let loadingInterval = null; // ローディングテキスト切り替え用
+    const loadingTexts = [
+        "要件を解析しています...",
+        "プロジェクト構造を設計しています...",
+        "依存関係を解決しています...",
+        "ソースコードを生成しています...",
+        "構文エラーを確認しています...",
+        "最適化を行っています...",
+        "出力の準備をしています..."
+    ];
 
-    // 指数バックオフによるリトライ機能付きFetch
-    async function fetchWithRetry(url, options, maxRetries = 5) {
-        let delay = 1000;
-        for (let i = 0; i < maxRetries; i++) {
-            try {
-                const response = await fetch(url, options);
-                if (!response.ok) {
-                    throw new Error(`HTTPエラー: ${response.status} ${response.statusText}`);
-                }
-                return await response.json();
-            } catch (e) {
-                if (i === maxRetries - 1) throw e;
-                await new Promise(res => setTimeout(res, delay));
-                delay *= 2;
-            }
-        }
+    // UI制御関数
+    function showMsg(text) {
+        document.getElementById('msgText').innerText = text;
+        document.getElementById('msgModal').style.display = 'flex';
     }
 
-    async function generateCode() {
-        const prompt = document.getElementById('promptInput').value.trim();
-        if (!prompt) {
-            alert("指示を入力してください。"); 
-            return;
-        }
+    function closeMsg() {
+        document.getElementById('msgModal').style.display = 'none';
+    }
 
-        // 入力されたAPIキーを取得。空の場合は自動キーをフォールバックとして使用
-        let currentApiKey = document.getElementById('apiKeyInput').value.trim();
-        if (!currentApiKey) {
-            currentApiKey = apiKey; 
-        }
+    function openHelp() {
+        showMsg("【APIキーの取得方法】\n1. Google AI Studio にアクセス\n2. Get API Key ボタンを押す\n3. 新しいキーを作成してコピー\n4. この画面の「設定」欄に貼り付けます。");
+    }
 
-        if (!currentApiKey) {
-            alert("Gemini APIキーを入力してください。\n(GitHub Pages等で実行する場合はご自身のキーが必要です)");
-            return;
-        }
-
-        const btn = document.getElementById('generateBtn');
-        const status = document.getElementById('statusText');
-        const resultArea = document.getElementById('resultArea');
-        const controlsArea = document.getElementById('controlsArea');
-        const progressFill = document.getElementById('progressFill');
-
-        btn.disabled = true;
-        status.textContent = "AI 思考中... (サーバーと通信しています)";
-        resultArea.innerHTML = "<div style='padding:10px;'>システムを設計しています。少々お待ちください...</div>";
+    function copyCode() {
+        const code = document.getElementById('codeEditor').value;
+        if (!code) return;
         
-        // プログレスバーのアニメーション開始
-        controlsArea.classList.add('is-loading');
-        progressFill.style.animation = 'none';
-        progressFill.offsetHeight; // リフロー強制
-        progressFill.style.animation = null;
-
-        const systemPrompt = `あなたは優秀なシニアソフトウェアエンジニアです。
-ユーザーの指示に従い、完全に機能するアプリケーションのコードを作成してください。
-大規模な要件や適切な設計が必要な場合は、必ず複数のファイルにコードを分割してください。
-
-【厳格な出力フォーマット】
-以下の2つのステップで出力してください。
-
-1. 【Visual Studio 2026 実装手順】
-最初に、このコードを Visual Studio 2026 で実行・実装するための具体的な手順（プロジェクトの作成方法、テンプレートの選択、ファイルの追加方法、必要なNuGetパッケージや設定など）をプレーンテキストで分かりやすく解説してください。
-
-2. 【コード本体】
-手順の解説の後、各ファイルごとに以下のマークダウン形式を使用して出力してください。
-それ以外の結びの言葉などは出力しないでください。
-
-### [ファイルパスまたはファイル名]
-\`\`\`[言語名]
-[コード本体]
-\`\`\`
-`;
-
-        const payload = {
-            contents: [{ parts: [{ text: prompt }] }],
-            systemInstruction: { parts: [{ text: systemPrompt }] }
-        };
-
-        // 修正点: 安定版の gemini-1.5-flash モデルを使用するようURLを変更
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${currentApiKey}`;
-
-        try {
-            const data = await fetchWithRetry(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (text) {
-                // プログレスバーを100%にする
-                progressFill.style.animation = 'none';
-                progressFill.style.width = '100%';
-                
-                parseAndDisplayResult(text);
-                status.textContent = "完了しました。";
-            } else {
-                resultArea.innerHTML = "生成結果を取得できませんでした。";
-                status.textContent = "エラーが発生しました。";
-            }
-        } catch (e) {
-            resultArea.innerHTML = `<div style="color:red;">通信エラーが発生しました:<br>${e.message}<br><br>APIキーが正しいか、またはネットワーク接続を確認してください。</div>`;
-            status.textContent = "エラー";
-        } finally {
-            btn.disabled = false;
-            // 少し待ってからプログレスバーを隠す
-            setTimeout(() => {
-                controlsArea.classList.remove('is-loading');
-                progressFill.style.width = '0%';
-            }, 1500);
-        }
-    }
-
-    // レスポンスから説明文と複数のファイルをパースして表示する
-    function parseAndDisplayResult(text) {
-        const resultArea = document.getElementById('resultArea');
-        resultArea.innerHTML = "";
-
-        // "### " をデリミタとして分割する
-        const parts = text.split(/###\s+/);
-        
-        // 最初の要素はVS2026の実装手順などの説明文
-        const explanation = parts[0].trim();
-        if (explanation) {
-            const expDiv = document.createElement('div');
-            expDiv.className = 'explanation-area';
-            expDiv.textContent = explanation;
-            resultArea.appendChild(expDiv);
-        }
-
-        let foundFile = false;
-
-        // 2番目以降の要素は各ファイルのブロック
-        for (let i = 1; i < parts.length; i++) {
-            const part = parts[i];
-            
-            // "ファイル名\n```言語\nコード\n```" の形式をパース
-            const match = part.match(/^([^\n]+)[\s\S]*?```\w*\n([\s\S]+?)```/);
-            
-            if (match) {
-                foundFile = true;
-                const fileName = match[1].trim();
-                const code = match[2].trim();
-
-                const block = document.createElement('div');
-                block.className = 'file-block';
-
-                const header = document.createElement('div');
-                header.className = 'file-header';
-
-                const nameDiv = document.createElement('div');
-                nameDiv.className = 'file-name';
-                nameDiv.innerHTML = `<span class="file-icon"></span> ${fileName}`;
-
-                // 修正点: コピー、保存ボタンのDOM生成と追加
-                const btnGroupDiv = document.createElement('div');
-                btnGroupDiv.style.display = 'flex';
-                btnGroupDiv.style.gap = '5px';
-
-                const copyBtn = document.createElement('button');
-                copyBtn.className = 'btn';
-                copyBtn.textContent = 'コピー';
-                copyBtn.onclick = () => copyToClipboard(code, copyBtn);
-
-                const dlBtn = document.createElement('button');
-                dlBtn.className = 'btn';
-                dlBtn.textContent = '保存';
-                dlBtn.onclick = () => downloadFile(fileName, code);
-
-                btnGroupDiv.appendChild(copyBtn);
-                btnGroupDiv.appendChild(dlBtn);
-
-                // 修正点: nameDivとボタン群をheaderに追加
-                header.appendChild(nameDiv);
-                header.appendChild(btnGroupDiv);
-
-                const pre = document.createElement('pre');
-                pre.textContent = code;
-                
-                block.appendChild(header);
-                block.appendChild(pre);
-                resultArea.appendChild(block);
-            }
-        }
-
-        // 正規表現にマッチしなかった場合のフォールバック（ファイルが1つも抽出できなかった場合）
-        if (!foundFile && parts.length <= 1) {
-            const pre = document.createElement('pre');
-            pre.textContent = text;
-            resultArea.appendChild(pre);
-        }
-    }
-
-    // クリップボードにコピー
-    function copyToClipboard(text, btnElement) {
-        // iframe環境などを考慮した堅牢なコピー処理
+        // execCommandを使用したレガシーなコピー手法（iframe内での安全動作のため）
         const textArea = document.createElement("textarea");
-        textArea.value = text;
-        textArea.style.position = "fixed";
-        textArea.style.left = "-9999px";
+        textArea.value = code;
         document.body.appendChild(textArea);
+        textArea.focus();
         textArea.select();
-        
         try {
             document.execCommand('copy');
-            const originalText = btnElement.textContent;
-            btnElement.textContent = 'OK!';
-            setTimeout(() => btnElement.textContent = originalText, 1500);
+            document.getElementById('statusText').innerText = "クリップボードにコピーしました。";
         } catch (err) {
-            console.error('コピーに失敗しました', err);
+            showMsg("コピーに失敗しました。");
         }
         document.body.removeChild(textArea);
     }
 
-    // ファイルとしてダウンロード
-    function downloadFile(filename, content) {
-        // パスが含まれている場合、最後のファイル名だけを抽出する簡易処理
-        const safeFilename = filename.split('/').pop().split('\\').pop() || "download.txt";
+    function setUIState(isGenerating) {
+        document.getElementById('generateBtn').disabled = isGenerating;
+        document.getElementById('promptInput').disabled = isGenerating;
+        document.getElementById('apiKey').disabled = isGenerating;
+        document.getElementById('langSelect').disabled = isGenerating;
         
-        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = safeFilename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const statusText = document.getElementById('statusText');
+        const loadingTextEl = document.getElementById('loadingText');
+
+        if (isGenerating) {
+            statusText.style.display = 'none';
+            loadingIndicator.style.display = 'flex';
+            
+            let textIndex = 0;
+            loadingTextEl.innerText = loadingTexts[textIndex];
+            loadingInterval = setInterval(() => {
+                textIndex = (textIndex + 1) % loadingTexts.length;
+                loadingTextEl.innerText = loadingTexts[textIndex];
+            }, 1500);
+        } else {
+            statusText.style.display = 'block';
+            loadingIndicator.style.display = 'none';
+            if (loadingInterval) {
+                clearInterval(loadingInterval);
+                loadingInterval = null;
+            }
+        }
     }
+
+    // ファイル表示関数
+    function displaySelectedFile() {
+        const fileList = document.getElementById('fileList');
+        const selectedIndex = fileList.selectedIndex;
+        
+        if (selectedIndex >= 0 && selectedIndex < generatedFiles.length) {
+            const file = generatedFiles[selectedIndex];
+            document.getElementById('currentFileName').innerText = file.filename;
+            document.getElementById('codeEditor').value = file.content;
+        }
+    }
+
+    // 参照ファイルの読み込み処理
+    async function handleFiles(files) {
+        if (!files || files.length === 0) return;
+        let loadedCount = 0;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            try {
+                const text = await file.text();
+                referenceFilesContent += `\n【参照ファイル: ${file.name}】\n${text}\n`;
+                loadedCount++;
+            } catch (e) {
+                console.error("ファイル読み込みエラー:", e);
+            }
+        }
+        showMsg(`${loadedCount}個のファイルを参照用として読み込みました。次の生成時にAIへ送信されます。`);
+        document.getElementById('fileInput').value = ''; // 同じファイルを再度選択可能にするためリセット
+    }
+
+    // API呼び出しメイン関数
+    async function startGeneration() {
+        const apiKey = document.getElementById('apiKey').value.trim();
+        let prompt = document.getElementById('promptInput').value.trim();
+        const lang = document.getElementById('langSelect').value;
+
+        if (!apiKey) {
+            showMsg("Gemini APIキーを入力してください。");
+            return;
+        }
+        if (!prompt && !referenceFilesContent) {
+            showMsg("AIへの指示を入力するか、ファイルを参照してください。");
+            return;
+        }
+
+        setUIState(true);
+        
+        // UIのクリア
+        document.getElementById('fileList').innerHTML = '';
+        document.getElementById('codeEditor').value = '';
+        document.getElementById('currentFileName').innerText = 'ファイルを選択してください';
+        document.getElementById('instructionsOutput').value = '';
+        generatedFiles = [];
+
+        // 参照ファイルがあればプロンプトに結合
+        if (referenceFilesContent) {
+            prompt = prompt ? prompt + `\n\n以下のコードを参照してください：\n${referenceFilesContent}` : `以下のコードを参照してください：\n${referenceFilesContent}`;
+            referenceFilesContent = ""; // 送信するため一旦クリア
+        }
+
+        // 言語指定のシステムプロンプト反映
+        const langInstruction = lang !== "指定なし" ? `\n特に指定がない限り、生成言語は「${lang}」を使用してください。` : "";
+
+        // システムプロンプトの構築
+        const systemPrompt = `
+あなたはVisual Studio 2026での開発に精通した熟練のプログラマー・アーキテクトAIです。
+ユーザーの指示に基づき、品質が高く、安全で最適なコードを生成してください。
+過去の会話コンテキストを踏まえて、コードの修正や追加機能の実装を行ってください。
+複雑なプログラムは単一のファイルではなく、適切な粒度で複数のファイル（ヘッダーファイル、ソースコード、設定ファイルなど）に分割してください。${langInstruction}
+
+以下の要件を必ず守り、JSON形式で出力してください：
+1. 出力は指定されたJSONスキーマに完全に従うこと。Markdownのコードブロック（\`\`\`json など）で囲まないでください。純粋なJSON文字列のみを出力してください。
+2. "files"配列には、プロジェクトを構成する各ファイルの名前とコード内容を含めてください。コード内容は必ず人間が読めるように適切に改行とインデントを保持し、JSON文字列として有効になるよう改行を \\n でエスケープして出力してください。
+3. "instructions"には、Visual Studio 2026を使用してこのプロジェクトを新規作成、コードを配置し、ビルドして実行するための具体的な手順を日本語で詳しく記述してください。
+`;
+
+        // ユーザーの発言を履歴に追加
+        conversationHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+        const payload = {
+            contents: conversationHistory, // 履歴全体を送信
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: {
+                // JSON出力を強制する
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: {
+                        files: {
+                            type: "ARRAY",
+                            description: "プロジェクトを構成するファイルのリスト",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    filename: { type: "STRING", description: "ファイル名（例: main.cpp, MyClass.h）" },
+                                    content: { type: "STRING", description: "ファイルの完全なコード内容" }
+                                },
+                                required: ["filename", "content"]
+                            }
+                        },
+                        instructions: {
+                            type: "STRING",
+                            description: "VS 2026でのプロジェクト作成、ビルド、実行手順"
+                        }
+                    },
+                    required: ["files", "instructions"]
+                }
+            }
+        };
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+        try {
+            const data = await fetchWithRetry(url, payload);
+            
+            if (!data.candidates || data.candidates.length === 0) {
+                throw new Error("AIから有効な応答がありませんでした。");
+            }
+
+            const responseText = data.candidates[0].content.parts[0].text;
+            
+            // JSONのパース
+            let resultObj;
+            try {
+                resultObj = JSON.parse(responseText);
+            } catch (e) {
+                console.error("JSON Parse Error:", e, responseText);
+                throw new Error("AIが予期しない形式のデータを返しました。");
+            }
+
+            // 成功した場合のみ、モデルの返答を履歴に追加
+            conversationHistory.push({ role: "model", parts: [{ text: responseText }] });
+
+            // 連続して指示を出しやすくするため、入力欄をクリア
+            document.getElementById('promptInput').value = '';
+
+            // 結果の反映
+            generatedFiles = resultObj.files || [];
+            const instructions = resultObj.instructions || "手順が生成されませんでした。";
+
+            const fileListEl = document.getElementById('fileList');
+            generatedFiles.forEach((file, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.text = file.filename;
+                fileListEl.appendChild(option);
+            });
+
+            document.getElementById('instructionsOutput').value = instructions;
+
+            if (generatedFiles.length > 0) {
+                fileListEl.selectedIndex = 0;
+                displaySelectedFile();
+                document.getElementById('statusText').innerText = `${generatedFiles.length}個のファイルが生成されました。（続けて指示の追加が可能です）`;
+            } else {
+                document.getElementById('statusText').innerText = "ファイルは生成されませんでした。";
+            }
+
+        } catch (error) {
+            // エラー時は追加したユーザープロンプトを履歴から削除し、次回やり直せるようにする
+            conversationHistory.pop();
+            console.error(error);
+            showMsg("エラーが発生しました: " + error.message);
+            document.getElementById('statusText').innerText = "エラーが発生しました。";
+        } finally {
+            setUIState(false);
+        }
+    }
+
+    // エクスポネンシャルバックオフ付きのFetch関数
+    async function fetchWithRetry(url, payload, maxRetries = 5) {
+        const delays = [1000, 2000, 4000, 8000, 16000];
+        
+        for (let i = 0; i <= maxRetries; i++) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
+                }
+
+                return data;
+
+            } catch (error) {
+                if (i === maxRetries) {
+                    throw error;
+                }
+                // wait for next retry
+                await new Promise(resolve => setTimeout(resolve, delays[i]));
+            }
+        }
+    }
+
 </script>
+
 </body>
 </html>
