@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEX.A Tube Finder</title>
+    <style>
+        body {
+            background-color: #008080; 
+            font-family: "MS UI Gothic", "ＭＳ Ｐゴシック", "MS PGothic", Tahoma, "MS Sans Serif", sans-serif;
+            font-size: 12px;
+            color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+            
+            -webkit-font-smoothing: none;
+            -moz-osx-font-smoothing: grayscale;
+            font-smooth: never;
+        }
+
+        ::-webkit-scrollbar {
+            width: 16px;
+            height: 16px;
+            background: #dfdfdf;
+        }
+        ::-webkit-scrollbar-button {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            display: block;
+        }
+        ::-webkit-scrollbar-button:active {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+        }
+
+        .window {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title-bar {
+            background: #000080;
+            color: white;
+            font-weight: bold;
+            padding: 2px 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            letter-spacing: 1px;
+            margin: 2px;
+        }
+
+        .title-bar-text {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 2px;
+        }
+
+        .title-bar-controls button {
+            width: 16px;
+            height: 14px;
+            font-size: 10px;
+            font-weight: bold;
+            line-height: 10px;
+            padding: 0;
+            margin-left: 2px;
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            color: #000000;
+        }
+
+        .title-bar-controls button:active {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            padding: 1px 0 0 1px;
+        }
+
+        .menu-bar {
+            border-bottom: 1px solid #808080;
+            box-shadow: 0 1px 0 #ffffff; 
+            padding: 2px;
+            display: flex;
+            gap: 10px;
+            margin: 0 2px;
+        }
+
+        .menu-item {
+            padding: 2px 6px;
+            cursor: pointer;
+        }
+        .menu-item:hover {
+            background-color: #000080;
+            color: white;
+        }
+
+        .window-body {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        fieldset {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            padding: 10px;
+            margin: 0;
+        }
+
+        legend {
+            color: #000000;
+            padding: 0 4px;
+        }
+
+        input[type="text"], input[type="password"], textarea, select {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            background-color: #ffffff;
+            padding: 3px;
+            font-family: inherit;
+            box-sizing: border-box;
+            width: 100%;
+            outline: none;
+        }
+
+        button {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            padding: 4px 15px;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+            color: #000000;
+        }
+
+        button:active {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            padding: 5px 14px 3px 16px; 
+        }
+
+        button:disabled {
+            color: #808080;
+            text-shadow: 1px 1px 0px #ffffff;
+        }
+
+        .api-key-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 10px;
+            height: 300px;
+        }
+        
+        @media (max-width: 600px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .file-list-container, .editor-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            height: 100%;
+        }
+
+        select[size] {
+            height: 100%;
+            min-height: 150px;
+        }
+
+        .code-editor {
+            height: 100%;
+            min-height: 150px;
+            font-family: "ＭＳ ゴシック", "MS Gothic", monospace;
+            white-space: pre-wrap; /* テキストの折り返しを有効に */
+            overflow: auto;
+            background-color: #ffffff;
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        
+        .code-editor a {
+            color: #0000ee;
+            text-decoration: underline;
+        }
+
+        .status-bar {
+            border-top: 1px solid #808080;
+            box-shadow: inset 0 1px 0 #ffffff;
+            padding: 3px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            background-color: #c0c0c0;
+            margin-top: 2px;
+        }
+
+        .loading-container {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .classic-progress-bar {
+            width: 150px;
+            height: 14px;
+            background-color: #c0c0c0;
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-bottom: 1px solid #ffffff;
+            border-right: 1px solid #ffffff;
+            position: relative;
+            box-sizing: border-box;
+            padding: 1px;
+        }
+
+        .classic-progress-bar::before {
+            content: "";
+            display: block;
+            height: 100%;
+            background-image: linear-gradient(90deg, #000080 8px, transparent 8px);
+            background-size: 10px 100%;
+            animation: fill-bar 3s steps(15, end) infinite;
+        }
+
+        @keyframes fill-bar {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .dialog {
+            width: 300px;
+            z-index: 1001;
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080, 2px 2px 5px rgba(0,0,0,0.5);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="window">
+    <div class="title-bar">
+        <div class="title-bar-text">
+            NEX.A Tube Finder
+        </div>
+        <div class="title-bar-controls">
+            <button aria-label="Minimize" onclick="showMsg('最小化しても何の意味もない…。')">_</button>
+            <button aria-label="Maximize" onclick="showMsg('サイズ変えて楽しい？')">□</button>
+            <button aria-label="Close" onclick="showMsg('閉じることはできません。')">X</button>
+        </div>
+    </div>
+    
+    <div class="menu-bar">
+        <span class="menu-item" onclick="document.getElementById('fileInput').click()">記憶を読み込む(F)</span>
+        <span class="menu-item" onclick="showMsg('うろ覚えの記憶から、該当しそうなYouTube動画をAIが推測します。')">情報(I)</span>
+        <span class="menu-item" onclick="openHelp()">ヘルプ(H)</span>
+    </div>
+    <input type="file" id="fileInput" multiple style="display:none;" onchange="handleFiles(this.files)">
+
+    <div class="window-body">
+        <fieldset>
+            <legend>設定</legend>
+            <div class="api-key-container">
+                <label for="apiKey">Gemini API キー:</label>
+                <input type="password" id="apiKey" placeholder="AIzaSy...">
+                <button onclick="openHelp()">?</button>
+            </div>
+            <div class="api-key-container" style="margin-top: 5px;">
+                <label for="genreSelect">動画ジャンル (任意):</label>
+                <select id="genreSelect">
+                    <option value="指定なし">自動（指定なし）</option>
+                    <option value="音楽・MV">音楽・MV</option>
+                    <option value="ゲーム実況">ゲーム実況</option>
+                    <option value="エンタメ・YouTuber">エンタメ・YouTuber</option>
+                    <option value="解説・教育">解説・教育</option>
+                    <option value="アニメ・切り抜き">アニメ・切り抜き</option>
+                </select>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>うろ覚えの記憶を入力 (特徴・シーン・音楽など)</legend>
+            <textarea id="promptInput" rows="4" placeholder="例: 数年前の動画で、赤い服を着た人が海岸で踊っているMV。サビで急にテンポが速くなる。"></textarea>
+            <div style="text-align: right; margin-top: 5px;">
+                <button id="generateBtn" onclick="startSearch()">検索開始(S)</button>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>検索結果候補</legend>
+            <div class="grid-container">
+                <div class="file-list-container">
+                    <label>候補リスト:</label>
+                    <select id="videoList" size="10" onchange="displaySelectedVideo()"></select>
+                </div>
+                <div class="editor-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label id="currentVideoName" style="font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">候補を選択してください</label>
+                        <button onclick="copyDetails()" style="padding: 2px 8px;">コピー(C)</button>
+                    </div>
+                    <div id="videoDetails" class="code-editor">ここに詳細が表示されます。</div>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>AIからのコメント・補足</legend>
+            <textarea id="aiCommentsOutput" rows="3" readonly style="background-color: #f0f0f0;"></textarea>
+        </fieldset>
+    </div>
+
+    <div class="status-bar">
+        <div id="statusText" style="width: 100%;">準備完了</div>
+        <div class="loading-container" id="loadingIndicator">
+            <span id="loadingText" style="flex-grow: 1; text-align: left;">NEX.Aが記憶を探っています...</span>
+            <div class="classic-progress-bar"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="msgModal">
+    <div class="window dialog">
+        <div class="title-bar">
+            <div class="title-bar-text">情報</div>
+            <div class="title-bar-controls">
+                <button onclick="closeMsg()">X</button>
+            </div>
+        </div>
+        <div class="window-body" style="text-align: center; padding: 20px;">
+            <p id="msgText"></p>
+            <button onclick="closeMsg()" style="margin-top: 10px; width: 80px;">OK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let suggestedVideos = [];
+    let conversationHistory = [];
+    let referenceFilesContent = "";
+    let loadingInterval = null;
+    const loadingTexts = [
+        "記憶の断片を解析しています...",
+        "YouTubeの海を検索中...",
+        "関連する動画を抽出しています...",
+        "候補を絞り込んでいます...",
+        "結果をフォーマット中..."
+    ];
+
+    function showMsg(text) {
+        document.getElementById('msgText').innerHTML = text; // brタグなどを有効にするためinnerHTMLに
+        document.getElementById('msgModal').style.display = 'flex';
+    }
+
+    function closeMsg() {
+        document.getElementById('msgModal').style.display = 'none';
+    }
+
+    function openHelp() {
+        showMsg("【APIキーの取得方法】<br>1. Google AI Studio にアクセス<br>2. Get API Key ボタンを押す<br>3. 新しいキーを作成してコピー<br>4. この画面の「設定」欄に貼り付けます。");
+    }
+
+    function copyDetails() {
+        const detailsDiv = document.getElementById('videoDetails');
+        if (!detailsDiv || detailsDiv.innerText.includes("ここに詳細が")) return;
+        
+        const textArea = document.createElement("textarea");
+        textArea.value = detailsDiv.innerText;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            document.getElementById('statusText').innerText = "クリップボードにコピーしました。";
+        } catch (err) {
+            showMsg("コピーに失敗しました。");
+        }
+        document.body.removeChild(textArea);
+    }
+
+    function setUIState(isGenerating) {
+        document.getElementById('generateBtn').disabled = isGenerating;
+        document.getElementById('promptInput').disabled = isGenerating;
+        document.getElementById('apiKey').disabled = isGenerating;
+        document.getElementById('genreSelect').disabled = isGenerating;
+        
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const statusText = document.getElementById('statusText');
+        const loadingTextEl = document.getElementById('loadingText');
+
+        if (isGenerating) {
+            statusText.style.display = 'none';
+            loadingIndicator.style.display = 'flex';
+            
+            let textIndex = 0;
+            loadingTextEl.innerText = loadingTexts[textIndex];
+            loadingInterval = setInterval(() => {
+                textIndex = (textIndex + 1) % loadingTexts.length;
+                loadingTextEl.innerText = loadingTexts[textIndex];
+            }, 1500);
+        } else {
+            statusText.style.display = 'block';
+            loadingIndicator.style.display = 'none';
+            if (loadingInterval) {
+                clearInterval(loadingInterval);
+                loadingInterval = null;
+            }
+        }
+    }
+
+    function displaySelectedVideo() {
+        const videoList = document.getElementById('videoList');
+        const selectedIndex = videoList.selectedIndex;
+        
+        if (selectedIndex >= 0 && selectedIndex < suggestedVideos.length) {
+            const video = suggestedVideos[selectedIndex];
+            document.getElementById('currentVideoName').innerText = video.title;
+            
+            // HTMLをエスケープして安全に表示しつつ、URLはリンク化する
+            const escapeHTML = str => str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+
+            const safeTitle = escapeHTML(video.title);
+            const safeUrl = escapeHTML(video.url);
+            const safeReason = escapeHTML(video.reason).replace(/\n/g, '<br>');
+
+            document.getElementById('videoDetails').innerHTML = `
+<strong>【動画タイトル / チャンネル】</strong>
+${safeTitle}
+
+<strong>【URL / 検索リンク】</strong>
+<a href="${safeUrl}" target="_blank">${safeUrl}</a>
+
+<strong>【推測理由・解説】</strong>
+${safeReason}
+            `;
+        }
+    }
+
+    async function handleFiles(files) {
+        if (!files || files.length === 0) return;
+        let loadedCount = 0;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            try {
+                const text = await file.text();
+                referenceFilesContent += `\n【参照メモ: ${file.name}】\n${text}\n`;
+                loadedCount++;
+            } catch (e) {
+                console.error("ファイル読み込みエラー:", e);
+            }
+        }
+        showMsg(`${loadedCount}個のテキストメモを読み込みました。次の検索時にAIへ送信されます。`);
+        document.getElementById('fileInput').value = '';
+    }
+
+    async function startSearch() {
+        const apiKey = document.getElementById('apiKey').value.trim();
+        let prompt = document.getElementById('promptInput').value.trim();
+        const genre = document.getElementById('genreSelect').value;
+
+        if (!apiKey) {
+            showMsg("Gemini APIキーを入力してください。");
+            return;
+        }
+        if (!prompt && !referenceFilesContent) {
+            showMsg("うろ覚えの記憶や動画の特徴を入力してください。");
+            return;
+        }
+
+        setUIState(true);
+        
+        document.getElementById('videoList').innerHTML = '';
+        document.getElementById('videoDetails').innerHTML = 'ここに詳細が表示されます。';
+        document.getElementById('currentVideoName').innerText = '候補を選択してください';
+        document.getElementById('aiCommentsOutput').value = '';
+        suggestedVideos = [];
+
+        if (referenceFilesContent) {
+            prompt = prompt ? prompt + `\n\n以下のメモも参照してください：\n${referenceFilesContent}` : `以下のメモを参照してください：\n${referenceFilesContent}`;
+            referenceFilesContent = ""; 
+        }
+
+        const genreInstruction = genre !== "指定なし" ? `\nこの動画のジャンルは「${genre}」である可能性が高いです。` : "";
+
+        const systemPrompt = `
+あなたはYouTubeの動画に非常に詳しいアシスタントAIです。
+ユーザーが入力した「うろ覚えの記憶」や「断片的な動画の特徴」から、該当する可能性の高いYouTube動画を推測してください。
+過去の会話コンテキストを踏まえて、検索条件を絞り込むことも可能です。${genreInstruction}
+
+以下の要件を必ず守り、JSON形式で出力してください：
+1. 出力は指定されたJSONスキーマに完全に従うこと。Markdownのコードブロック（\`\`\`json など）で囲まないでください。純粋なJSON文字列のみを出力してください。
+2. "videos"配列には、ユーザーの記憶に該当しそうな動画の候補を最大5件含めてください。
+3. "comments"には、全体的な推測の所感や、「もしかして〇〇という要素はありませんでしたか？」といったユーザーの記憶を引き出すための質問を記述してください。
+`;
+
+        conversationHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+        const payload = {
+            contents: conversationHistory,
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: {
+                        videos: {
+                            type: "ARRAY",
+                            description: "推測される動画候補のリスト",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    title: { type: "STRING", description: "動画のタイトルやチャンネル名（例: 『〇〇』 / チャンネル名）" },
+                                    url: { type: "STRING", description: "予想されるYouTube動画のURL、またはそれを探すためのYouTube検索結果のURL" },
+                                    reason: { type: "STRING", description: "なぜこの動画だと推測したのか、ユーザーの記憶と一致するポイントの解説" }
+                                },
+                                required: ["title", "url", "reason"]
+                            }
+                        },
+                        comments: {
+                            type: "STRING",
+                            description: "AIからの全体的なコメント、補足、または記憶を引き出すための追加の質問"
+                        }
+                    },
+                    required: ["videos", "comments"]
+                }
+            }
+        };
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+        try {
+            const data = await fetchWithRetry(url, payload);
+            
+            if (!data.candidates || data.candidates.length === 0) {
+                throw new Error("AIから有効な応答がありませんでした。");
+            }
+
+            const responseText = data.candidates[0].content.parts[0].text;
+            
+            let resultObj;
+            try {
+                resultObj = JSON.parse(responseText);
+            } catch (e) {
+                console.error("JSON Parse Error:", e, responseText);
+                throw new Error("AIが予期しない形式のデータを返しました。");
+            }
+
+            conversationHistory.push({ role: "model", parts: [{ text: responseText }] });
+
+            document.getElementById('promptInput').value = '';
+
+            suggestedVideos = resultObj.videos || [];
+            const comments = resultObj.comments || "コメントはありません。";
+
+            const videoListEl = document.getElementById('videoList');
+            suggestedVideos.forEach((video, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                // タイトルが長すぎる場合は省略する
+                const displayTitle = video.title.length > 25 ? video.title.substring(0, 25) + '...' : video.title;
+                option.text = displayTitle;
+                videoListEl.appendChild(option);
+            });
+
+            document.getElementById('aiCommentsOutput').value = comments;
+
+            if (suggestedVideos.length > 0) {
+                videoListEl.selectedIndex = 0;
+                displaySelectedVideo();
+                document.getElementById('statusText').innerText = `${suggestedVideos.length}件の候補が見つかりました。（続けて記憶を追加できます）`;
+            } else {
+                document.getElementById('statusText').innerText = "候補が見つかりませんでした。別の特徴を入力してください。";
+            }
+
+        } catch (error) {
+            conversationHistory.pop();
+            console.error(error);
+            showMsg("エラーが発生しました: " + error.message);
+            document.getElementById('statusText').innerText = "エラーが発生しました。";
+        } finally {
+            setUIState(false);
+        }
+    }
+
+    async function fetchWithRetry(url, payload, maxRetries = 5) {
+        const delays = [1000, 2000, 4000, 8000, 16000];
+        
+        for (let i = 0; i <= maxRetries; i++) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
+                }
+
+                return data;
+
+            } catch (error) {
+                if (i === maxRetries) {
+                    throw error;
+                }
+                await new Promise(resolve => setTimeout(resolve, delays[i]));
+            }
+        }
+    }
+
+</script>
+
+</body>
+</html>
