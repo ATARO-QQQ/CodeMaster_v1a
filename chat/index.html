@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEX.A Chat Edition</title>
+    <style>
+        body {
+            background-color: #008080; 
+            font-family: "MS UI Gothic", "ＭＳ Ｐゴシック", "MS PGothic", Tahoma, "MS Sans Serif", sans-serif;
+            font-size: 12px;
+            color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+            
+            -webkit-font-smoothing: none;
+            -moz-osx-font-smoothing: grayscale;
+            font-smooth: never;
+        }
+
+        ::-webkit-scrollbar {
+            width: 16px;
+            height: 16px;
+            background: #dfdfdf;
+        }
+        ::-webkit-scrollbar-button {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            display: block;
+        }
+        ::-webkit-scrollbar-button:active {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+        }
+
+        .window {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title-bar {
+            background: #000080;
+            color: white;
+            font-weight: bold;
+            padding: 2px 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            letter-spacing: 1px;
+            margin: 2px;
+        }
+
+        .title-bar-text {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 2px;
+        }
+
+        .title-bar-controls button {
+            width: 16px;
+            height: 14px;
+            font-size: 10px;
+            font-weight: bold;
+            line-height: 10px;
+            padding: 0;
+            margin-left: 2px;
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            color: #000000;
+        }
+
+        .title-bar-controls button:active {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            padding: 1px 0 0 1px;
+        }
+
+        .menu-bar {
+            border-bottom: 1px solid #808080;
+            box-shadow: 0 1px 0 #ffffff; 
+            padding: 2px;
+            display: flex;
+            gap: 10px;
+            margin: 0 2px;
+        }
+
+        .menu-item {
+            padding: 2px 6px;
+            cursor: pointer;
+        }
+        .menu-item:hover {
+            background-color: #000080;
+            color: white;
+        }
+
+        .window-body {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        fieldset {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            padding: 10px;
+            margin: 0;
+        }
+
+        legend {
+            color: #000000;
+            padding: 0 4px;
+        }
+
+        input[type="text"], input[type="password"], textarea, select {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            background-color: #ffffff;
+            padding: 3px;
+            font-family: inherit;
+            box-sizing: border-box;
+            width: 100%;
+            outline: none;
+        }
+
+        button {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            padding: 4px 15px;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+            color: #000000;
+        }
+
+        button:active {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            padding: 5px 14px 3px 16px;
+        }
+
+        button:disabled {
+            color: #808080;
+            text-shadow: 1px 1px 0px #ffffff;
+        }
+
+        .api-key-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        textarea.chat-log {
+            height: 300px;
+            font-family: "ＭＳ ゴシック", "MS Gothic", monospace;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            background-color: #ffffff;
+            resize: vertical;
+            padding: 5px;
+        }
+
+        .status-bar {
+            border-top: 1px solid #808080;
+            box-shadow: inset 0 1px 0 #ffffff;
+            padding: 3px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            background-color: #c0c0c0;
+            margin-top: 2px;
+        }
+
+        .loading-container {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .classic-progress-bar {
+            width: 150px;
+            height: 14px;
+            background-color: #c0c0c0;
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-bottom: 1px solid #ffffff;
+            border-right: 1px solid #ffffff;
+            position: relative;
+            box-sizing: border-box;
+            padding: 1px;
+        }
+
+        .classic-progress-bar::before {
+            content: "";
+            display: block;
+            height: 100%;
+            background-image: linear-gradient(90deg, #000080 8px, transparent 8px);
+            background-size: 10px 100%;
+            animation: fill-bar 3s steps(15, end) infinite;
+        }
+
+        @keyframes fill-bar {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .dialog {
+            width: 300px;
+            z-index: 1001;
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080, 2px 2px 5px rgba(0,0,0,0.5);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="window">
+    <div class="title-bar">
+        <div class="title-bar-text">
+            NEX.A Chat Edition
+        </div>
+        <div class="title-bar-controls">
+            <button aria-label="Minimize" onclick="showMsg('最小化しても何の意味もない…。')">_</button>
+            <button aria-label="Maximize" onclick="showMsg('サイズ変えて楽しい？')">□</button>
+            <button aria-label="Close" onclick="showMsg('閉じることはできません。')">X</button>
+        </div>
+    </div>
+    
+    <div class="menu-bar">
+        <span class="menu-item" onclick="document.getElementById('fileInput').click()">ファイル参照(F)</span>
+        <span class="menu-item" onclick="clearChat()">ログ消去(E)</span>
+        <span class="menu-item" onclick="openHelp()">ヘルプ(H)</span>
+    </div>
+    <input type="file" id="fileInput" multiple style="display:none;" onchange="handleFiles(this.files)">
+
+    <div class="window-body">
+        <fieldset>
+            <legend>設定</legend>
+            <div class="api-key-container">
+                <label for="apiKey">Gemini API キー:</label>
+                <input type="password" id="apiKey" placeholder="AIzaSy...">
+                <button onclick="openHelp()">?</button>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>AIへのメッセージ</legend>
+            <textarea id="promptInput" rows="3" placeholder="例: 日本で一番高い山は何ですか？"></textarea>
+            <div style="text-align: right; margin-top: 5px;">
+                <button id="generateBtn" onclick="startGeneration()">送信(S)</button>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>会話ログ</legend>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 5px;">
+                <button onclick="copyChat()" style="padding: 2px 8px;">ログをコピー(C)</button>
+            </div>
+            <textarea id="chatLog" class="chat-log" readonly></textarea>
+        </fieldset>
+    </div>
+
+    <div class="status-bar">
+        <div id="statusText" style="width: 100%;">準備完了</div>
+        <div class="loading-container" id="loadingIndicator">
+            <span id="loadingText" style="flex-grow: 1; text-align: left;">NEX.Aが思考中...</span>
+            <div class="classic-progress-bar"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="msgModal">
+    <div class="window dialog">
+        <div class="title-bar">
+            <div class="title-bar-text">情報</div>
+            <div class="title-bar-controls">
+                <button onclick="closeMsg()">X</button>
+            </div>
+        </div>
+        <div class="window-body" style="text-align: center; padding: 20px;">
+            <p id="msgText"></p>
+            <button onclick="closeMsg()" style="margin-top: 10px; width: 80px;">OK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let conversationHistory = [];
+    let referenceFilesContent = "";
+    let loadingInterval = null;
+    const loadingTexts = [
+        "質問を解析しています...",
+        "情報を検索しています...",
+        "回答を構築しています...",
+        "文章を推敲しています...",
+        "出力を準備しています..."
+    ];
+
+    function showMsg(text) {
+        document.getElementById('msgText').innerText = text;
+        document.getElementById('msgModal').style.display = 'flex';
+    }
+
+    function closeMsg() {
+        document.getElementById('msgModal').style.display = 'none';
+    }
+
+    function openHelp() {
+        showMsg("【APIキーの取得方法】\n1. Google AI Studio にアクセス\n2. Get API Key ボタンを押す\n3. 新しいキーを作成してコピー\n4. この画面の「設定」欄に貼り付けます。\n\n※「ファイル参照」からテキストファイルを読み込ませて、それについて質問することも可能です。");
+    }
+
+    function clearChat() {
+        conversationHistory = [];
+        document.getElementById('chatLog').value = '';
+        document.getElementById('statusText').innerText = "会話ログを消去しました。";
+    }
+
+    function copyChat() {
+        const chatLog = document.getElementById('chatLog').value;
+        if (!chatLog) return;
+        
+        const textArea = document.createElement("textarea");
+        textArea.value = chatLog;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            document.getElementById('statusText').innerText = "会話ログをクリップボードにコピーしました。";
+        } catch (err) {
+            showMsg("コピーに失敗しました。");
+        }
+        document.body.removeChild(textArea);
+    }
+
+    function setUIState(isGenerating) {
+        document.getElementById('generateBtn').disabled = isGenerating;
+        document.getElementById('promptInput').disabled = isGenerating;
+        document.getElementById('apiKey').disabled = isGenerating;
+        
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const statusText = document.getElementById('statusText');
+        const loadingTextEl = document.getElementById('loadingText');
+
+        if (isGenerating) {
+            statusText.style.display = 'none';
+            loadingIndicator.style.display = 'flex';
+            
+            let textIndex = 0;
+            loadingTextEl.innerText = loadingTexts[textIndex];
+            loadingInterval = setInterval(() => {
+                textIndex = (textIndex + 1) % loadingTexts.length;
+                loadingTextEl.innerText = loadingTexts[textIndex];
+            }, 1500);
+        } else {
+            statusText.style.display = 'block';
+            loadingIndicator.style.display = 'none';
+            if (loadingInterval) {
+                clearInterval(loadingInterval);
+                loadingInterval = null;
+            }
+        }
+    }
+
+    async function handleFiles(files) {
+        if (!files || files.length === 0) return;
+        let loadedCount = 0;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            try {
+                const text = await file.text();
+                referenceFilesContent += `\n【参照ファイル: ${file.name}】\n${text}\n`;
+                loadedCount++;
+            } catch (e) {
+                console.error("ファイル読み込みエラー:", e);
+            }
+        }
+        showMsg(`${loadedCount}個のファイルを参照用として読み込みました。次の質問時にAIへ送信されます。`);
+        document.getElementById('fileInput').value = '';
+    }
+
+    async function startGeneration() {
+        const apiKey = document.getElementById('apiKey').value.trim();
+        let prompt = document.getElementById('promptInput').value.trim();
+
+        if (!apiKey) {
+            showMsg("Gemini APIキーを入力してください。");
+            return;
+        }
+        if (!prompt && !referenceFilesContent) {
+            showMsg("メッセージを入力してください。");
+            return;
+        }
+
+        setUIState(true);
+
+        // 表示用のプロンプト（参照ファイルの中身は画面に長々と出さない）
+        let displayPrompt = prompt;
+
+        if (referenceFilesContent) {
+            prompt = prompt ? prompt + `\n\n以下の資料を参照してください：\n${referenceFilesContent}` : `以下の資料を参照してください：\n${referenceFilesContent}`;
+            referenceFilesContent = ""; // 送信するため一旦クリア
+        }
+
+        const systemPrompt = `あなたはユーザーの質問に丁寧に答える優秀なAIアシスタントです。過去の会話コンテキストを踏まえて、分かりやすく自然な日本語で回答してください。`;
+
+        conversationHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+        const payload = {
+            contents: conversationHistory,
+            systemInstruction: { parts: [{ text: systemPrompt }] }
+        };
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+        try {
+            const data = await fetchWithRetry(url, payload);
+            
+            if (!data.candidates || data.candidates.length === 0) {
+                throw new Error("AIから有効な応答がありませんでした。");
+            }
+
+            const responseText = data.candidates[0].content.parts[0].text;
+            
+            conversationHistory.push({ role: "model", parts: [{ text: responseText }] });
+
+            // チャットログに追記
+            const chatLog = document.getElementById('chatLog');
+            chatLog.value += `[あなた]\n${displayPrompt}\n\n[NEX.A]\n${responseText}\n\n=========================\n\n`;
+            chatLog.scrollTop = chatLog.scrollHeight; // 自動で一番下までスクロール
+
+            document.getElementById('promptInput').value = '';
+            document.getElementById('statusText').innerText = "応答を受信しました。続けて質問が可能です。";
+
+        } catch (error) {
+            conversationHistory.pop(); // エラー時は履歴からユーザー入力を消す
+            console.error(error);
+            showMsg("エラーが発生しました: " + error.message);
+            document.getElementById('statusText').innerText = "通信エラーが発生しました。";
+        } finally {
+            setUIState(false);
+        }
+    }
+
+    async function fetchWithRetry(url, payload, maxRetries = 5) {
+        const delays = [1000, 2000, 4000, 8000, 16000];
+        
+        for (let i = 0; i <= maxRetries; i++) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
+                }
+
+                return data;
+
+            } catch (error) {
+                if (i === maxRetries) {
+                    throw error;
+                }
+                await new Promise(resolve => setTimeout(resolve, delays[i]));
+            }
+        }
+    }
+
+    // Enterキーで送信 (Shift+Enterで改行)
+    document.getElementById('promptInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            startGeneration();
+        }
+    });
+
+</script>
+
+</body>
+</html>
