@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEX.A Electronics Edition</title>
+    <style>
+        body {
+            background-color: #008080; 
+            font-family: "MS UI Gothic", "ＭＳ Ｐゴシック", "MS PGothic", Tahoma, "MS Sans Serif", sans-serif;
+            font-size: 12px;
+            color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+            -webkit-font-smoothing: none;
+            -moz-osx-font-smoothing: grayscale;
+            font-smooth: never;
+        }
+
+        ::-webkit-scrollbar { width: 16px; height: 16px; background: #dfdfdf; }
+        ::-webkit-scrollbar-button {
+            background-color: #c0c0c0;
+            border: 1px solid;
+            border-color: #ffffff #000000 #000000 #ffffff;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            display: block;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #c0c0c0;
+            border: 1px solid;
+            border-color: #ffffff #000000 #000000 #ffffff;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+        }
+
+        .window {
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title-bar {
+            background: #000080;
+            color: white;
+            font-weight: bold;
+            padding: 2px 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            letter-spacing: 1px;
+            margin: 2px;
+        }
+
+        .title-bar-text { display: flex; align-items: center; gap: 5px; margin-left: 2px; }
+
+        .title-bar-controls button {
+            width: 16px; height: 14px; font-size: 10px; font-weight: bold; line-height: 10px;
+            padding: 0; margin-left: 2px; background-color: #c0c0c0;
+            border: 1px solid; border-color: #ffffff #000000 #000000 #ffffff;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+        }
+
+        .menu-bar {
+            border-bottom: 1px solid #808080;
+            box-shadow: 0 1px 0 #ffffff; 
+            padding: 2px; display: flex; gap: 10px; margin: 0 2px;
+        }
+
+        .menu-item { padding: 2px 6px; cursor: pointer; }
+        .menu-item:hover { background-color: #000080; color: white; }
+
+        .window-body { padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+
+        fieldset {
+            border-top: 1px solid #808080; border-left: 1px solid #808080;
+            border-right: 1px solid #ffffff; border-bottom: 1px solid #ffffff;
+            padding: 10px; margin: 0;
+        }
+
+        legend { color: #000000; padding: 0 4px; }
+
+        input, textarea, select {
+            border: 1px solid; border-color: #808080 #ffffff #ffffff #808080;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            background-color: #ffffff; padding: 3px; font-family: inherit; width: 100%; box-sizing: border-box; outline: none;
+        }
+
+        button {
+            background-color: #c0c0c0; border: 1px solid; border-color: #ffffff #000000 #000000 #ffffff;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            padding: 4px 15px; font-family: inherit; cursor: pointer; outline: none;
+        }
+
+        button:active {
+            border-color: #808080 #ffffff #ffffff #808080;
+            box-shadow: inset 1px 1px #000000, inset -1px -1px #dfdfdf;
+            padding: 5px 14px 3px 16px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        @media (max-width: 768px) { .grid-container { grid-template-columns: 1fr; } }
+
+        .board-canvas-container {
+            background-color: #ffffff;
+            border: 1px solid #808080;
+            box-shadow: inset 1px 1px #000000;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            min-height: 300px;
+        }
+
+        #boardCanvas {
+            background-color: #c5a059; /* ユニバーサル基板っぽい色 */
+            image-rendering: pixelated;
+        }
+
+        .status-bar {
+            border-top: 1px solid #808080; box-shadow: inset 0 1px 0 #ffffff;
+            padding: 3px 10px; display: flex; justify-content: space-between; align-items: center;
+            font-size: 11px; background-color: #c0c0c0; margin-top: 2px;
+        }
+
+        .loading-container { display: none; align-items: center; gap: 10px; width: 100%; }
+        
+        .classic-progress-bar {
+            width: 150px; height: 14px; background-color: #c0c0c0;
+            border: 1px solid; border-color: #808080 #ffffff #ffffff #808080;
+            position: relative; box-sizing: border-box; padding: 1px;
+        }
+
+        .classic-progress-bar::before {
+            content: ""; display: block; height: 100%;
+            background-image: linear-gradient(90deg, #000080 8px, transparent 8px);
+            background-size: 10px 100%;
+            animation: fill-bar 3s steps(15, end) infinite;
+        }
+
+        @keyframes fill-bar { 0% { width: 0%; } 100% { width: 100%; } }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .dialog { width: 300px; background-color: #c0c0c0; border: 1px solid; border-color: #ffffff #000000 #000000 #ffffff; }
+    </style>
+</head>
+<body>
+
+<div class="window">
+    <div class="title-bar">
+        <div class="title-bar-text">NEX.A Electronics Edition - 装置設計エージェント</div>
+        <div class="title-bar-controls">
+            <button onclick="showMsg('最小化できません。')">_</button>
+            <button onclick="showMsg('最大化できません。')">□</button>
+            <button onclick="showMsg('終了できません。')">X</button>
+        </div>
+    </div>
+    
+    <div class="menu-bar">
+        <span class="menu-item" onclick="showMsg('保存機能は開発中です。')">ファイル(F)</span>
+        <span class="menu-item" onclick="openHelp()">ヘルプ(H)</span>
+    </div>
+
+    <div class="window-body">
+        <fieldset>
+            <legend>設定</legend>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <label for="apiKey">Gemini API キー:</label>
+                <input type="password" id="apiKey" placeholder="AIzaSy..." style="flex-grow: 1;">
+                <button onclick="openHelp()">?</button>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>装置の概要・要件入力</legend>
+            <textarea id="promptInput" rows="3" placeholder="例: 暗くなると自動でLEDが点灯する装置を作りたい。電池駆動で、感度調整もできるようにしたい。"></textarea>
+            <div style="text-align: right; margin-top: 5px;">
+                <button id="generateBtn" onclick="startGeneration()">設計開始(G)</button>
+            </div>
+        </fieldset>
+
+        <div class="grid-container">
+            <fieldset style="display: flex; flex-direction: column;">
+                <legend>ユニバーサル基板 配線図(V)</legend>
+                <div class="board-canvas-container">
+                    <canvas id="boardCanvas"></canvas>
+                </div>
+                <div style="font-size: 10px; margin-top: 5px; color: #444;">
+                    ※青：配線 / 赤・黄：部品端子 / 緑：ジャンパ
+                </div>
+            </fieldset>
+
+            <fieldset style="display: flex; flex-direction: column;">
+                <legend>部品リスト・作り方(S)</legend>
+                <textarea id="instructionsOutput" style="height: 100%; resize: none; background-color: #f0f0f0;" readonly></textarea>
+            </fieldset>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div id="statusText" style="width: 100%;">準備完了</div>
+        <div class="loading-container" id="loadingIndicator">
+            <span id="loadingText" style="flex-grow: 1; text-align: left;">回路設計中...</span>
+            <div class="classic-progress-bar"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="msgModal">
+    <div class="window dialog">
+        <div class="title-bar">
+            <div class="title-bar-text">情報</div>
+            <div class="title-bar-controls"><button onclick="closeMsg()">X</button></div>
+        </div>
+        <div class="window-body" style="text-align: center; padding: 20px;">
+            <p id="msgText"></p>
+            <button onclick="closeMsg()" style="margin-top: 10px; width: 80px;">OK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('boardCanvas');
+    const ctx = canvas.getContext('2d');
+    const GRID_SIZE = 15; // 穴の間隔
+    const DOT_RADIUS = 2; // 穴のサイズ
+    const COLS = 25;
+    const ROWS = 18;
+
+    function initCanvas() {
+        canvas.width = COLS * GRID_SIZE;
+        canvas.height = ROWS * GRID_SIZE;
+        drawGrid([]);
+    }
+
+    function drawGrid(wires) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // 基板描画
+        ctx.fillStyle = "#c5a059";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 穴の描画
+        ctx.fillStyle = "#8b6b23";
+        for (let i = 0; i < COLS; i++) {
+            for (let j = 0; j < ROWS; j++) {
+                ctx.beginPath();
+                ctx.arc(i * GRID_SIZE + GRID_SIZE/2, j * GRID_SIZE + GRID_SIZE/2, DOT_RADIUS, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // 配線の描画
+        wires.forEach(wire => {
+            ctx.beginPath();
+            ctx.strokeStyle = wire.color || "#0000ff";
+            ctx.lineWidth = 3;
+            ctx.lineCap = "round";
+            ctx.moveTo(wire.x1 * GRID_SIZE + GRID_SIZE/2, wire.y1 * GRID_SIZE + GRID_SIZE/2);
+            ctx.lineTo(wire.x2 * GRID_SIZE + GRID_SIZE/2, wire.y2 * GRID_SIZE + GRID_SIZE/2);
+            ctx.stroke();
+
+            // 端子強調
+            ctx.fillStyle = wire.color === "#ff0000" ? "#ff0000" : "#ffff00";
+            [ {x: wire.x1, y: wire.y1}, {x: wire.x2, y: wire.y2} ].forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x * GRID_SIZE + GRID_SIZE/2, p.y * GRID_SIZE + GRID_SIZE/2, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        });
+    }
+
+    function showMsg(text) {
+        document.getElementById('msgText').innerText = text;
+        document.getElementById('msgModal').style.display = 'flex';
+    }
+
+    function closeMsg() { document.getElementById('msgModal').style.display = 'none'; }
+    function openHelp() { showMsg("作りたい装置の概要を入力してください。\nAIが部品の選定、ユニバーサル基板上での配線（25x18マス）、組み立て手順を提案します。"); }
+
+    function setUIState(isGenerating) {
+        document.getElementById('generateBtn').disabled = isGenerating;
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const statusText = document.getElementById('statusText');
+        if (isGenerating) {
+            statusText.style.display = 'none';
+            loadingIndicator.style.display = 'flex';
+        } else {
+            statusText.style.display = 'block';
+            loadingIndicator.style.display = 'none';
+        }
+    }
+
+    async function startGeneration() {
+        const apiKey = document.getElementById('apiKey').value.trim();
+        const prompt = document.getElementById('promptInput').value.trim();
+
+        if (!apiKey) { showMsg("Gemini APIキーを入力してください。"); return; }
+        if (!prompt) { showMsg("装置の概要を入力してください。"); return; }
+
+        setUIState(true);
+        
+        const systemPrompt = `
+あなたは電子工作の専門家エージェントです。ユーザーの要望に対し、ユニバーサル基板（25x18の穴）を用いた実装案を作成してください。
+
+出力は以下のJSON形式のみで行ってください：
+{
+  "parts_list": "必要な部品のリスト（型番や定数を含む）",
+  "build_steps": "具体的な作り方と注意点",
+  "wiring_diagram": [
+    {"x1": 0, "y1": 0, "x2": 5, "y2": 0, "color": "#0000ff", "label": "VCC"},
+    ...
+  ]
+}
+
+※wiring_diagramのルール:
+- xは0〜24、yは0〜17の整数。
+- colorは、通常の配線なら #0000ff、重要部品の足なら #ff0000、ジャンパなら #00ff00 を使用してください。
+- 穴を物理的なユニバーサル基板の格子として扱い、そこに部品を配置し、接続する様子をデータ化してください。
+`;
+
+        const payload = {
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: {
+                        parts_list: { type: "STRING" },
+                        build_steps: { type: "STRING" },
+                        wiring_diagram: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    x1: { type: "NUMBER" }, y1: { type: "NUMBER" },
+                                    x2: { type: "NUMBER" }, y2: { type: "NUMBER" },
+                                    color: { type: "STRING" }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error?.message || "通信エラー");
+
+            const result = JSON.parse(data.candidates[0].content.parts[0].text);
+            
+            document.getElementById('instructionsOutput').value = `【部品リスト】\n${result.parts_list}\n\n【作り方】\n${result.build_steps}`;
+            drawGrid(result.wiring_diagram || []);
+            document.getElementById('statusText').innerText = "設計が完了しました。";
+
+        } catch (error) {
+            showMsg("エラー: " + error.message);
+        } finally {
+            setUIState(false);
+        }
+    }
+
+    window.onload = initCanvas;
+</script>
+
+</body>
+</html>
